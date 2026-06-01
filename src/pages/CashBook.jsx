@@ -324,7 +324,7 @@ export default function CashBook() {
       {/* Z-Abschluss Form */}
       {showAbschlussForm && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm">
-          <div className="w-full max-w-lg bg-card border border-border rounded-t-3xl p-6 pb-10 space-y-4 max-h-[90vh] overflow-y-auto">
+          <div className="w-full max-w-lg bg-card border border-border rounded-t-3xl p-6 pb-28 space-y-4 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between">
               <h2 className="text-base font-semibold">Z-Abschluss / Tagesabschluss</h2>
               <button onClick={() => setShowAbschlussForm(false)} className="text-muted-foreground text-sm">Abbrechen</button>
