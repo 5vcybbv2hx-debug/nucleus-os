@@ -9,7 +9,26 @@ Deno.serve(async (req) => {
 
   if (!fileUrl) return Response.json({ error: 'fileUrl required' }, { status: 400 });
 
-  const prompt = `Du bist ein OCR-System für Geschäftsdokumente. Analysiere dieses Dokument und extrahiere folgende Felder strukturiert.
+  const isKassenbericht = documentType === 'Kassenbericht' || documentType === 'Z-Abschlag';
+
+  const prompt = isKassenbericht
+    ? `Du bist ein OCR-System für Kassensysteme. Analysiere diesen Z-Abschlag / Kassenbericht und extrahiere folgende Felder.
+
+Extrahiere:
+- datum: Datum des Abschlusses (Format: YYYY-MM-DD, oder null)
+- betrag: Nettoumsatz / Gesamtumsatz als Zahl in EUR (oder null)
+- einnahmen: Gesamteinnahmen / Bruttoumsatz als Zahl (oder null)
+- ausgaben: Stornos / Ausgaben als Zahl (oder null)
+- anfangsbestand: Kassenbestand am Anfang als Zahl (oder null)
+- endbestand: Kassenbestand am Ende / Kassenstand als Zahl (oder null)
+- absender: Name des Unternehmens / der Kasse (oder null)
+- rechnungsnummer: Z-Nummer / Abschlussnummer (oder null)
+- kategorie: "Z-Abschlag"
+- zahlungsart: Zahlungsarten wenn erkennbar (bar, ec, etc.)
+- kurzinhalt: Kurze Beschreibung
+
+Antworte NUR mit einem JSON-Objekt, keine weiteren Erklärungen.`
+    : `Du bist ein OCR-System für Geschäftsdokumente. Analysiere dieses Dokument und extrahiere folgende Felder strukturiert.
 Dokumenttyp-Hinweis: ${documentType || 'unbekannt'}
 
 Extrahiere:
@@ -31,6 +50,10 @@ Antworte NUR mit einem JSON-Objekt, keine weiteren Erklärungen.`;
       properties: {
         datum: { type: "string" },
         betrag: { type: "number" },
+        einnahmen: { type: "number" },
+        ausgaben: { type: "number" },
+        anfangsbestand: { type: "number" },
+        endbestand: { type: "number" },
         absender: { type: "string" },
         rechnungsnummer: { type: "string" },
         kategorie: { type: "string" },
