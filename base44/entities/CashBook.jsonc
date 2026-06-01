@@ -1,0 +1,44 @@
+{
+  "name": "CashBook",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "bereich": {
+      "type": "string",
+      "enum": [
+        "BAR",
+        "PRIVAT_FAMILIE",
+        "NEBENGEWERBE"
+      ],
+      "default": "BAR"
+    },
+    "openingBalance": {
+      "type": "number",
+      "description": "Anfangsbestand"
+    },
+    "closingBalance": {
+      "type": "number",
+      "description": "Endbestand"
+    },
+    "totalIncome": {
+      "type": "number"
+    },
+    "totalExpenses": {
+      "type": "number"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "isLocked": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "date",
+    "bereich"
+  ]
+}

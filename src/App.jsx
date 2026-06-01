@@ -13,6 +13,9 @@ import DocumentDetail from '@/pages/DocumentDetail';
 import Finance from '@/pages/Finance';
 import Deadlines from '@/pages/Deadlines';
 import Settings from '@/pages/Settings';
+import Vehicles from '@/pages/Vehicles';
+import CashBook from '@/pages/CashBook';
+import Assistant from '@/pages/Assistant';
 
 // Layout
 import AppLayout from '@/components/layout/AppLayout';
@@ -51,6 +54,9 @@ const AuthenticatedApp = () => {
         <Route path="/fristen" element={<Deadlines />} />
         <Route path="/fristen/neu" element={<Deadlines />} />
         <Route path="/einstellungen" element={<Settings />} />
+        <Route path="/fahrzeuge" element={<Vehicles />} />
+        <Route path="/kassenbuch" element={<CashBook />} />
+        <Route path="/assistent" element={<Assistant />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

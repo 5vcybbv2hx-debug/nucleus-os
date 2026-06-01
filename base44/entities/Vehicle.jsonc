@@ -1,0 +1,90 @@
+{
+  "name": "Vehicle",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Bezeichnung z.B. VW Transporter"
+    },
+    "kennzeichen": {
+      "type": "string"
+    },
+    "bereich": {
+      "type": "string",
+      "enum": [
+        "BAR",
+        "PRIVAT_FAMILIE",
+        "NEBENGEWERBE"
+      ]
+    },
+    "typ": {
+      "type": "string",
+      "enum": [
+        "PKW",
+        "LKW",
+        "Transporter",
+        "Motorrad",
+        "Anh\u00e4nger",
+        "Sonstiges"
+      ]
+    },
+    "marke": {
+      "type": "string"
+    },
+    "modell": {
+      "type": "string"
+    },
+    "baujahr": {
+      "type": "number"
+    },
+    "kilometerstand": {
+      "type": "number"
+    },
+    "huDatum": {
+      "type": "string",
+      "format": "date",
+      "description": "N\u00e4chste HU/T\u00dcV"
+    },
+    "auDatum": {
+      "type": "string",
+      "format": "date",
+      "description": "N\u00e4chste AU"
+    },
+    "versicherungAblauf": {
+      "type": "string",
+      "format": "date"
+    },
+    "versicherungGesellschaft": {
+      "type": "string"
+    },
+    "naechsteWartung": {
+      "type": "string",
+      "format": "date"
+    },
+    "naechsteWartungKm": {
+      "type": "number"
+    },
+    "kraftstoff": {
+      "type": "string",
+      "enum": [
+        "Benzin",
+        "Diesel",
+        "Elektro",
+        "Hybrid",
+        "Gas",
+        "Sonstiges"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "isArchived": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "name",
+    "bereich"
+  ]
+}
