@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
 
     // Zielordner: entweder manuell übergeben oder Standard aus NAS-Config
     const basePath = config.basePath || '/Backoffice';
-    const scanPath = manualFolderPath || `${basePath}/Bar/Kassenbuch/`.replace('//', '/');
+    const scanPath = manualFolderPath || `/Backoffice OS/SAVO/01FINANZEN/Kassenberichte/`;
 
     const auth = btoa(`${config.nasUsername}:${config.nasPassword}`);
 

@@ -28,8 +28,7 @@ export default function CashBook() {
       if (configs[0]?.connectionStatus === 'connected') {
         setNasConfig(configs[0]);
         // Standardpfad für Kassenbuch
-        const base = configs[0].basePath || '';
-        setNasPath(`${base}/Bar/Kassenbuch/`.replace('//', '/'));
+        setNasPath(`/Backoffice OS/SAVO/01FINANZEN/Kassenberichte/`);
       }
     });
   }, []);
