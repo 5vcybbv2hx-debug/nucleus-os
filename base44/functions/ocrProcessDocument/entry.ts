@@ -57,6 +57,7 @@ Antworte NUR mit einem JSON-Objekt, keine weiteren Erklärungen.`;
   const result = await base44.integrations.Core.InvokeLLM({
     prompt,
     file_urls: [fileUrl],
+    model: "claude_sonnet_4_6",
     response_json_schema: {
       type: "object",
       properties: {
