@@ -14,10 +14,17 @@ Deno.serve(async (req) => {
   const prompt = isKassenbericht
     ? `Du bist ein OCR-System für Kassensysteme. Analysiere diesen Z-Abschlag / Kassenbericht und extrahiere folgende Felder.
 
-WICHTIG: Der Gesamtumsatz auf einem Z-Abschlag enthält oft mehrere Zahlungsarten (Bar, EC, Gutscheine, Kreditkarte usw.).
-Für "einnahmen" und "betrag" soll NUR der BAR-Umsatz (Bargeld) verwendet werden — NICHT der Gesamtumsatz.
-Suche explizit nach einer Zeile wie "Bar", "Bargeld", "Bar-Umsatz", "Cash" und verwende diesen Wert.
-Falls kein separater Bar-Betrag ausgewiesen ist, setze null.
+WICHTIG zur Betragsermittlung:
+Auf dem Z-Abschlag gibt es einen Abschnitt namens "Umsatz" (oder ähnlich: "Umsatzübersicht", "Zahlungsarten").
+Innerhalb dieses Abschnitts sind die Zahlungsarten einzeln aufgelistet, z.B.:
+  Umsatz
+    Bar:        123,45 €
+    EC:         456,78 €
+    Gutschein:   12,00 €
+
+Verwende für "einnahmen" und "betrag" NUR den Wert hinter "Bar" (oder "Bargeld", "Cash") innerhalb des Umsatz-Abschnitts.
+NICHT den Gesamtumsatz, NICHT EC, NICHT Gutscheine, NICHT Kreditkarte.
+Falls kein Bar-Betrag gefunden wird, setze null.
 
 Extrahiere:
 - datum: Datum des Abschlusses (Format: YYYY-MM-DD, oder null)
