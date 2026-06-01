@@ -14,18 +14,23 @@ Deno.serve(async (req) => {
   const prompt = isKassenbericht
     ? `Du bist ein OCR-System für Kassensysteme. Analysiere diesen Z-Abschlag / Kassenbericht und extrahiere folgende Felder.
 
+WICHTIG: Der Gesamtumsatz auf einem Z-Abschlag enthält oft mehrere Zahlungsarten (Bar, EC, Gutscheine, Kreditkarte usw.).
+Für "einnahmen" und "betrag" soll NUR der BAR-Umsatz (Bargeld) verwendet werden — NICHT der Gesamtumsatz.
+Suche explizit nach einer Zeile wie "Bar", "Bargeld", "Bar-Umsatz", "Cash" und verwende diesen Wert.
+Falls kein separater Bar-Betrag ausgewiesen ist, setze null.
+
 Extrahiere:
 - datum: Datum des Abschlusses (Format: YYYY-MM-DD, oder null)
-- betrag: Nettoumsatz / Gesamtumsatz als Zahl in EUR (oder null)
-- einnahmen: Gesamteinnahmen / Bruttoumsatz als Zahl (oder null)
-- ausgaben: Stornos / Ausgaben als Zahl (oder null)
+- betrag: NUR der Bar-Umsatz (Bargeld) als Zahl in EUR — NICHT Gesamtumsatz (oder null)
+- einnahmen: NUR der Bar-Umsatz (Bargeld) als Zahl — NICHT EC, NICHT Gutscheine (oder null)
+- ausgaben: Stornos / Retouren / Ausgaben als Zahl (oder null)
 - anfangsbestand: Kassenbestand am Anfang als Zahl (oder null)
 - endbestand: Kassenbestand am Ende / Kassenstand als Zahl (oder null)
 - absender: Name des Unternehmens / der Kasse (oder null)
 - rechnungsnummer: Z-Nummer / Abschlussnummer (oder null)
 - kategorie: "Z-Abschlag"
-- zahlungsart: Zahlungsarten wenn erkennbar (bar, ec, etc.)
-- kurzinhalt: Kurze Beschreibung
+- zahlungsart: "bar"
+- kurzinhalt: Kurze Beschreibung inkl. Hinweis auf erkannte Zahlungsarten
 
 Antworte NUR mit einem JSON-Objekt, keine weiteren Erklärungen.`
     : `Du bist ein OCR-System für Geschäftsdokumente. Analysiere dieses Dokument und extrahiere folgende Felder strukturiert.
