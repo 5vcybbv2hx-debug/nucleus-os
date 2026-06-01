@@ -1,0 +1,52 @@
+{
+  "name": "CashBookEntry",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Buchungsdatum"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "einnahme",
+        "ausgabe"
+      ],
+      "description": "Einnahme oder Ausgabe"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Betrag in EUR"
+    },
+    "description": {
+      "type": "string",
+      "description": "Buchungstext / Verwendungszweck"
+    },
+    "category": {
+      "type": "string",
+      "description": "Kategorie z.B. Einkauf, Personalkosten, Lieferant"
+    },
+    "receiptUrl": {
+      "type": "string",
+      "description": "Hochgeladener Beleg (PDF/Bild)"
+    },
+    "nasPath": {
+      "type": "string",
+      "description": "Pfad des Belegs auf der NAS"
+    },
+    "runningBalance": {
+      "type": "number",
+      "description": "Kassenstand nach dieser Buchung"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "date",
+    "type",
+    "amount",
+    "description"
+  ]
+}
