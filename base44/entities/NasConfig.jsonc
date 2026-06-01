@@ -1,0 +1,38 @@
+{
+  "name": "NasConfig",
+  "type": "object",
+  "properties": {
+    "nasUrl": {
+      "type": "string"
+    },
+    "nasUsername": {
+      "type": "string"
+    },
+    "nasPassword": {
+      "type": "string"
+    },
+    "basePath": {
+      "type": "string"
+    },
+    "lastSync": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "connectionStatus": {
+      "type": "string",
+      "enum": [
+        "connected",
+        "disconnected",
+        "error"
+      ],
+      "default": "disconnected"
+    },
+    "connectionMessage": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "nasUrl",
+    "nasUsername"
+  ]
+}

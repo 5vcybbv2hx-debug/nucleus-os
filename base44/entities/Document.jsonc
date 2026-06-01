@@ -1,0 +1,97 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "bereich": {
+      "type": "string",
+      "enum": [
+        "BAR",
+        "PRIVAT_FAMILIE",
+        "NEBENGEWERBE"
+      ]
+    },
+    "documentType": {
+      "type": "string",
+      "enum": [
+        "Eingangsrechnung",
+        "Ausgangsrechnung",
+        "Kontoauszug",
+        "EC-Abrechnung",
+        "Kassenbericht",
+        "Vertrag",
+        "Versicherung",
+        "Steuerdokument",
+        "Personalunterlage",
+        "Lizenz",
+        "Fahrzeugdokument",
+        "Gesundheitsdokument",
+        "Sonstiges"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "neu",
+        "verarbeitet",
+        "offen",
+        "bezahlt",
+        "archiviert",
+        "an_steuerberater",
+        "wartet_auf_pruefung"
+      ],
+      "default": "neu"
+    },
+    "nasPath": {
+      "type": "string"
+    },
+    "fileUrl": {
+      "type": "string"
+    },
+    "ocrDatum": {
+      "type": "string"
+    },
+    "ocrBetrag": {
+      "type": "number"
+    },
+    "ocrAbsender": {
+      "type": "string"
+    },
+    "ocrRechnungsnummer": {
+      "type": "string"
+    },
+    "ocrKategorie": {
+      "type": "string"
+    },
+    "ocrZahlungsart": {
+      "type": "string"
+    },
+    "ocrRawText": {
+      "type": "string"
+    },
+    "ocrProcessed": {
+      "type": "boolean",
+      "default": false
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "isArchived": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "bereich",
+    "documentType"
+  ]
+}

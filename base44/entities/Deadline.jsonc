@@ -1,0 +1,71 @@
+{
+  "name": "Deadline",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "bereich": {
+      "type": "string",
+      "enum": [
+        "BAR",
+        "PRIVAT_FAMILIE",
+        "NEBENGEWERBE"
+      ]
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "versicherung",
+        "steuertermin",
+        "vertrag",
+        "lizenz",
+        "fahrzeug",
+        "gesundheit",
+        "sonstiges"
+      ]
+    },
+    "dueDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "reminderDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "hoch",
+        "mittel",
+        "niedrig"
+      ],
+      "default": "mittel"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "offen",
+        "in_bearbeitung",
+        "erledigt"
+      ],
+      "default": "offen"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "assignedTo": {
+      "type": "string"
+    },
+    "isArchived": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "bereich",
+    "category",
+    "dueDate"
+  ]
+}

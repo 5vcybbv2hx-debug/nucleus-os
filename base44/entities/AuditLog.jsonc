@@ -1,0 +1,37 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "entityType": {
+      "type": "string"
+    },
+    "entityId": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string"
+    },
+    "oldValue": {
+      "type": "string"
+    },
+    "newValue": {
+      "type": "string"
+    },
+    "performedBy": {
+      "type": "string"
+    },
+    "performedByName": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "entityType",
+    "entityId",
+    "action",
+    "performedBy"
+  ]
+}

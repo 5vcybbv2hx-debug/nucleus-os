@@ -1,0 +1,56 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "bereich": {
+      "type": "string",
+      "enum": [
+        "BAR",
+        "PRIVAT_FAMILIE",
+        "NEBENGEWERBE"
+      ]
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "hoch",
+        "mittel",
+        "niedrig"
+      ],
+      "default": "mittel"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "offen",
+        "in_bearbeitung",
+        "erledigt"
+      ],
+      "default": "offen"
+    },
+    "assignedTo": {
+      "type": "string"
+    },
+    "dueDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "linkedDocumentId": {
+      "type": "string"
+    },
+    "isArchived": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title",
+    "bereich"
+  ]
+}

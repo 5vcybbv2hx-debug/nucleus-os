@@ -1,0 +1,82 @@
+{
+  "name": "FinanceEntry",
+  "type": "object",
+  "properties": {
+    "bereich": {
+      "type": "string",
+      "enum": [
+        "BAR",
+        "PRIVAT_FAMILIE",
+        "NEBENGEWERBE"
+      ]
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "einnahme",
+        "ausgabe"
+      ]
+    },
+    "amount": {
+      "type": "number"
+    },
+    "currency": {
+      "type": "string",
+      "default": "EUR"
+    },
+    "category": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "paymentMethod": {
+      "type": "string",
+      "enum": [
+        "bar",
+        "ec",
+        "ueberweisung",
+        "lastschrift",
+        "kreditkarte",
+        "paypal",
+        "sonstiges"
+      ]
+    },
+    "documentId": {
+      "type": "string"
+    },
+    "isFixkost": {
+      "type": "boolean",
+      "default": false
+    },
+    "fixkostRhythmus": {
+      "type": "string",
+      "enum": [
+        "monatlich",
+        "jaehrlich",
+        "variabel"
+      ]
+    },
+    "fixkostName": {
+      "type": "string"
+    },
+    "nextDueDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "isArchived": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "bereich",
+    "type",
+    "amount",
+    "date"
+  ]
+}
