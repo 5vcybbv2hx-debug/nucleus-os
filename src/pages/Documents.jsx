@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { Search, Plus, Filter, X, SlidersHorizontal } from 'lucide-react';
+import { Search, Plus, Filter, X, SlidersHorizontal, Camera } from 'lucide-react';
 import DocumentCard from '@/components/documents/DocumentCard';
 import DocumentUploadModal from '@/components/documents/DocumentUploadModal';
+import QuickScanModal from '@/components/documents/QuickScanModal';
 import BereichBadge from '@/components/ui/BereichBadge';
 import { DOC_TYPES, DOC_STATUS, BEREICHE } from '@/lib/constants';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -14,6 +15,7 @@ export default function Documents() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [showUpload, setShowUpload] = useState(false);
+  const [showQuickScan, setShowQuickScan] = useState(false);
   const [showFilter, setShowFilter] = useState(false);
   const [filters, setFilters] = useState({ bereich: '', documentType: '', status: '' });
 
@@ -59,13 +61,22 @@ export default function Documents() {
           <h1 className="text-xl font-semibold">Dokumente</h1>
           <p className="text-xs text-muted-foreground mt-0.5">{documents.length} Einträge</p>
         </div>
-        <button
-          onClick={() => setShowUpload(true)}
-          className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
-        >
-          <Plus size={16} />
-          Neu
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowQuickScan(true)}
+            className="flex items-center gap-1.5 border border-primary/40 text-primary px-3 py-2.5 rounded-xl text-sm font-medium hover:bg-primary/10 transition-colors"
+          >
+            <Camera size={16} />
+            Scan
+          </button>
+          <button
+            onClick={() => setShowUpload(true)}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors"
+          >
+            <Plus size={16} />
+            Neu
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -185,6 +196,16 @@ export default function Documents() {
         {showUpload && (
           <DocumentUploadModal
             onClose={() => setShowUpload(false)}
+            onSuccess={load}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Quick Scan Modal */}
+      <AnimatePresence>
+        {showQuickScan && (
+          <QuickScanModal
+            onClose={() => setShowQuickScan(false)}
             onSuccess={load}
           />
         )}
