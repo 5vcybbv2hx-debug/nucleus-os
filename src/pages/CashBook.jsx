@@ -141,10 +141,15 @@ export default function CashBook() {
   const handleNasImport = async () => {
     setNasImporting(true);
     setNasImportResult(null);
-    const res = await base44.functions.invoke('nasImportZAbschlaege', {});
-    setNasImportResult(res.data);
+    try {
+      const res = await base44.functions.invoke('nasImportZAbschlaege', {});
+      setNasImportResult(res.data);
+      if (res.data?.imported > 0) load();
+    } catch (err) {
+      const msg = err?.response?.data?.error || err.message || 'NAS nicht erreichbar';
+      setNasImportResult({ error: msg });
+    }
     setNasImporting(false);
-    if (res.data?.imported > 0) load();
   };
 
   return (
