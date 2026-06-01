@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { BookOpen, Plus, Lock, TrendingUp, TrendingDown, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { BookOpen, Plus, Lock, TrendingUp, TrendingDown, ChevronLeft, ChevronRight as ChevronRightIcon, Paperclip, ExternalLink, Loader2 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths, parseISO } from 'date-fns';
 import { de } from 'date-fns/locale';
 
@@ -12,6 +12,8 @@ export default function CashBook() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ date: format(new Date(), 'yyyy-MM-dd'), openingBalance: '', closingBalance: '', totalIncome: '', totalExpenses: '', notes: '' });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -45,6 +47,15 @@ export default function CashBook() {
   const totalIncome = monthFinance.filter(e => e.type === 'einnahme').reduce((s, e) => s + (e.amount || 0), 0);
   const totalExpenses = monthFinance.filter(e => e.type === 'ausgabe').reduce((s, e) => s + (e.amount || 0), 0);
 
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setUploadedFileUrl(file_url);
+    setUploading(false);
+  };
+
   const handleSave = async () => {
     setSaving(true);
     await base44.entities.CashBook.create({
@@ -54,10 +65,12 @@ export default function CashBook() {
       closingBalance: parseFloat(form.closingBalance) || 0,
       totalIncome: parseFloat(form.totalIncome) || totalIncome,
       totalExpenses: parseFloat(form.totalExpenses) || totalExpenses,
+      fileUrl: uploadedFileUrl || null,
     });
     setSaving(false);
     setShowForm(false);
     setForm({ date: format(new Date(), 'yyyy-MM-dd'), openingBalance: '', closingBalance: '', totalIncome: '', totalExpenses: '', notes: '' });
+    setUploadedFileUrl('');
     load();
   };
 
@@ -128,13 +141,20 @@ export default function CashBook() {
                 </div>
                 {e.notes && <div className="text-xs text-muted-foreground mt-0.5 truncate">{e.notes}</div>}
               </div>
-              {e.isLocked ? (
-                <Lock size={14} className="text-muted-foreground" />
-              ) : (
-                <button onClick={() => handleLock(e)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 border border-border rounded-lg transition-colors">
-                  Sperren
-                </button>
-              )}
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {e.fileUrl && (
+                  <a href={e.fileUrl} target="_blank" rel="noopener noreferrer" className="p-1.5 hover:bg-secondary rounded-lg transition-colors">
+                    <Paperclip size={13} className="text-primary" />
+                  </a>
+                )}
+                {e.isLocked ? (
+                  <Lock size={14} className="text-muted-foreground" />
+                ) : (
+                  <button onClick={() => handleLock(e)} className="text-xs text-muted-foreground hover:text-foreground px-2 py-1 border border-border rounded-lg transition-colors">
+                    Sperren
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -176,7 +196,32 @@ export default function CashBook() {
               <label className="text-xs text-muted-foreground font-medium">Notizen</label>
               <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} className="w-full mt-1 bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5 h-16 resize-none" placeholder="Besonderheiten des Tages..." />
             </div>
-            <button onClick={handleSave} disabled={saving} className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-semibold text-sm disabled:opacity-50">
+
+            {/* File Upload */}
+            <div>
+              <label className="text-xs text-muted-foreground font-medium">Kassenbeleg (PDF / Foto)</label>
+              {uploadedFileUrl ? (
+                <div className="mt-1 flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-xl">
+                  <Paperclip size={14} className="text-green-400 flex-shrink-0" />
+                  <span className="text-xs text-green-400 flex-1 truncate">Datei hochgeladen</span>
+                  <a href={uploadedFileUrl} target="_blank" rel="noopener noreferrer" className="p-1 hover:bg-green-500/20 rounded-lg transition-colors">
+                    <ExternalLink size={13} className="text-green-400" />
+                  </a>
+                  <button onClick={() => setUploadedFileUrl('')} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
+                </div>
+              ) : (
+                <label className="mt-1 flex items-center gap-2 p-3 border border-dashed border-border rounded-xl cursor-pointer hover:bg-secondary/30 transition-colors">
+                  {uploading ? (
+                    <><Loader2 size={14} className="animate-spin text-primary" /><span className="text-xs text-muted-foreground">Wird hochgeladen...</span></>
+                  ) : (
+                    <><Paperclip size={14} className="text-muted-foreground" /><span className="text-xs text-muted-foreground">PDF, JPG oder PNG anhängen</span></>
+                  )}
+                  <input type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={handleFileUpload} className="hidden" disabled={uploading} />
+                </label>
+              )}
+            </div>
+
+            <button onClick={handleSave} disabled={saving || uploading} className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-semibold text-sm disabled:opacity-50">
               {saving ? 'Wird gespeichert...' : 'Speichern'}
             </button>
           </div>

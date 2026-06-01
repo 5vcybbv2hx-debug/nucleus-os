@@ -32,6 +32,10 @@
     "notes": {
       "type": "string"
     },
+    "fileUrl": {
+      "type": "string",
+      "description": "Hochgeladener Kassenbeleg (PDF/Bild)"
+    },
     "isLocked": {
       "type": "boolean",
       "default": false
