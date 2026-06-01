@@ -12,32 +12,36 @@ Deno.serve(async (req) => {
   const isKassenbericht = documentType === 'Kassenbericht' || documentType === 'Z-Abschlag';
 
   const prompt = isKassenbericht
-    ? `Du bist ein OCR-System für Kassensysteme. Analysiere diesen Z-Abschlag / Kassenbericht und extrahiere folgende Felder.
+    ? `Du bist ein OCR-System für Kassensysteme (Gastware/Kassensoftware). Analysiere diesen Z-Abschlag und extrahiere die folgenden Felder exakt.
 
-WICHTIG zur Betragsermittlung:
-Auf dem Z-Abschlag gibt es einen Abschnitt namens "Umsatz" (oder ähnlich: "Umsatzübersicht", "Zahlungsarten").
-Innerhalb dieses Abschnitts sind die Zahlungsarten einzeln aufgelistet, z.B.:
-  Umsatz
-    Bar:        123,45 €
-    EC:         456,78 €
-    Gutschein:   12,00 €
+DATUM:
+Das Datum steht im Titel des Dokuments, z.B. "Z-Abschlag Nr. 1784 vom 02.01.2026".
+Verwende dieses Datum (Format: YYYY-MM-DD). NICHT das Druckdatum ("Druckzeit").
 
-Verwende für "einnahmen" und "betrag" NUR den Wert hinter "Bar" (oder "Bargeld", "Cash") innerhalb des Umsatz-Abschnitts.
-NICHT den Gesamtumsatz, NICHT EC, NICHT Gutscheine, NICHT Kreditkarte.
-Falls kein Bar-Betrag gefunden wird, setze null.
+BARUMSATZ (betrag / einnahmen):
+Im Abschnitt "Umsatz" gibt es eine Tabelle mit Spalten: Finanzart / Mwst Satz / Netto / Mwst / Brutto.
+Die Tabelle hat Unterabschnitte für jede Zahlungsart, z.B. "EC-Cash" und "Bar".
+Suche die Zeile "Summe Bar:" — der Wert in der letzten Spalte (Brutto) ist der Bar-Bruttoumsatz.
+Beispiel: "Summe Bar: 831,42 € 157,98 € 989,40 €" → betrag = 989.40
+
+Verwende NUR den Brutto-Wert der Zeile "Summe Bar:".
+NICHT "Summe EC-Cash", NICHT "Umsatz total", NICHT den Netto-Wert.
+
+STORNOS (ausgaben):
+Suche nach "Summe stornierte Rechnungen:" und nimm den Brutto-Wert (letzte Spalte).
 
 Extrahiere:
-- datum: Datum des Abschlusses (Format: YYYY-MM-DD, oder null)
-- betrag: NUR der Bar-Umsatz (Bargeld) als Zahl in EUR — NICHT Gesamtumsatz (oder null)
-- einnahmen: NUR der Bar-Umsatz (Bargeld) als Zahl — NICHT EC, NICHT Gutscheine (oder null)
-- ausgaben: Stornos / Retouren / Ausgaben als Zahl (oder null)
-- anfangsbestand: Kassenbestand am Anfang als Zahl (oder null)
-- endbestand: Kassenbestand am Ende / Kassenstand als Zahl (oder null)
-- absender: Name des Unternehmens / der Kasse (oder null)
-- rechnungsnummer: Z-Nummer / Abschlussnummer (oder null)
+- datum: Datum aus dem Dokumenttitel "Z-Abschlag Nr. XXX vom DD.MM.YYYY" → YYYY-MM-DD
+- betrag: Brutto-Wert aus Zeile "Summe Bar:" als Zahl (z.B. 989.40)
+- einnahmen: identisch mit betrag (Brutto-Wert "Summe Bar:")
+- ausgaben: Brutto-Wert aus "Summe stornierte Rechnungen:" als Zahl (oder 0)
+- anfangsbestand: null (nicht vorhanden)
+- endbestand: null (nicht vorhanden)
+- absender: Firmenname oben im Dokument (z.B. "SAVO Lounge - Club")
+- rechnungsnummer: Z-Abschlag-Nummer (z.B. "1784")
 - kategorie: "Z-Abschlag"
 - zahlungsart: "bar"
-- kurzinhalt: Kurze Beschreibung inkl. Hinweis auf erkannte Zahlungsarten
+- kurzinhalt: Kurze Zusammenfassung mit Bar-Umsatz, EC-Umsatz und Gesamtumsatz
 
 Antworte NUR mit einem JSON-Objekt, keine weiteren Erklärungen.`
     : `Du bist ein OCR-System für Geschäftsdokumente. Analysiere dieses Dokument und extrahiere folgende Felder strukturiert.
