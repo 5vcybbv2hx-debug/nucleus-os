@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { BookOpen, Plus, Lock, TrendingUp, TrendingDown, ChevronLeft, ChevronRight as ChevronRightIcon, Paperclip, ExternalLink, Loader2, Sparkles, CheckCircle2, FolderOpen } from 'lucide-react';
+import { BookOpen, Plus, Lock, TrendingUp, TrendingDown, ChevronLeft, ChevronRight as ChevronRightIcon, Paperclip, ExternalLink, Loader2, Sparkles, CheckCircle2, FolderOpen, RefreshCw } from 'lucide-react';
 import NasFolderBrowser from '@/components/nas/NasFolderBrowser';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths, parseISO } from 'date-fns';
 import { de } from 'date-fns/locale';
@@ -13,6 +13,8 @@ export default function CashBook() {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ date: format(new Date(), 'yyyy-MM-dd'), openingBalance: '', closingBalance: '', totalIncome: '', totalExpenses: '', notes: '' });
   const [saving, setSaving] = useState(false);
+  const [nasImporting, setNasImporting] = useState(false);
+  const [nasImportResult, setNasImportResult] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [ocrLoading, setOcrLoading] = useState(false);
   const [ocrDone, setOcrDone] = useState(false);
@@ -140,6 +142,15 @@ export default function CashBook() {
     load();
   };
 
+  const handleNasImport = async () => {
+    setNasImporting(true);
+    setNasImportResult(null);
+    const res = await base44.functions.invoke('nasImportZAbschlaege', {});
+    setNasImportResult(res.data);
+    setNasImporting(false);
+    if (res.data?.imported > 0) load();
+  };
+
   return (
     <div className="px-4 pt-14 pb-24">
       <div className="flex items-center justify-between mb-4">
@@ -147,13 +158,38 @@ export default function CashBook() {
           <h1 className="text-xl font-semibold">Kassenbuch Bar</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Tagesabschlüsse</p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium"
-        >
-          <Plus size={16} /> Tagesabschluss
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleNasImport}
+            disabled={nasImporting}
+            className="flex items-center gap-1.5 px-3 py-2 border border-border text-muted-foreground rounded-xl text-sm font-medium hover:bg-secondary/50 transition-colors disabled:opacity-50"
+            title="Z-Abschlüge von NAS importieren"
+          >
+            {nasImporting ? <Loader2 size={15} className="animate-spin" /> : <RefreshCw size={15} />}
+            NAS
+          </button>
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-1.5 px-3 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium"
+          >
+            <Plus size={16} /> Tagesabschluss
+          </button>
+        </div>
       </div>
+
+      {/* NAS Import Ergebnis */}
+      {nasImportResult && (
+        <div className={`mb-4 p-3 rounded-xl border text-xs flex items-start gap-2 ${nasImportResult.error ? 'bg-red-500/10 border-red-500/20 text-red-400' : 'bg-green-500/10 border-green-500/20 text-green-400'}`}>
+          {nasImportResult.error ? '✕' : <Sparkles size={13} className="flex-shrink-0 mt-0.5" />}
+          <div>
+            {nasImportResult.error
+              ? nasImportResult.error
+              : <><span className="font-medium">{nasImportResult.imported} neue Z-Abschlüge importiert</span> ({nasImportResult.scanned} Dateien gescannt, {nasImportResult.skipped} bereits vorhanden)</>
+            }
+          </div>
+          <button onClick={() => setNasImportResult(null)} className="ml-auto text-current opacity-60 hover:opacity-100">✕</button>
+        </div>
+      )}
 
       {/* Month Navigation */}
       <div className="flex items-center justify-between mb-4 p-3 bg-card border border-border rounded-2xl">
