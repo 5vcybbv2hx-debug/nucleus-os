@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { X, Upload, Camera, Loader2, CheckCircle2, Sparkles } from 'lucide-react';
+import { X, Upload, Loader2, CheckCircle2, Sparkles, FolderOpen, ChevronDown } from 'lucide-react';
 import { DOC_TYPES, BEREICHE } from '@/lib/constants';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import NasFolderBrowser from '@/components/nas/NasFolderBrowser';
 
 export default function DocumentUploadModal({ onClose, onSuccess }) {
   const [step, setStep] = useState('upload'); // upload | ocr | details | saving
@@ -17,6 +18,14 @@ export default function DocumentUploadModal({ onClose, onSuccess }) {
     ocrDatum: '', ocrBetrag: '', ocrAbsender: '', ocrRechnungsnummer: '',
     ocrKategorie: '', ocrZahlungsart: '', nasPath: ''
   });
+  const [nasConfig, setNasConfig] = useState(null);
+  const [showNasBrowser, setShowNasBrowser] = useState(false);
+
+  useEffect(() => {
+    base44.entities.NasConfig.list().then(configs => {
+      if (configs[0]?.connectionStatus === 'connected') setNasConfig(configs[0]);
+    });
+  }, []);
 
   const handleFileChange = async (e) => {
     const f = e.target.files[0];
@@ -253,12 +262,35 @@ export default function DocumentUploadModal({ onClose, onSuccess }) {
 
             <div>
               <label className="text-xs text-muted-foreground font-medium">NAS-Pfad</label>
-              <input
-                value={form.nasPath}
-                onChange={e => setForm(p => ({ ...p, nasPath: e.target.value }))}
-                className="w-full mt-1 bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5 font-mono text-xs"
-                placeholder="/NAS/Bar/Rechnungen/2026/"
-              />
+              <div className="flex gap-2 mt-1">
+                <input
+                  value={form.nasPath}
+                  onChange={e => setForm(p => ({ ...p, nasPath: e.target.value }))}
+                  className="flex-1 bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5 font-mono text-xs"
+                  placeholder="/Backoffice/Bar/Rechnungen/"
+                />
+                {nasConfig && (
+                  <button
+                    type="button"
+                    onClick={() => setShowNasBrowser(p => !p)}
+                    className="px-3 py-2 border border-border rounded-xl hover:bg-secondary/50 transition-colors"
+                  >
+                    <FolderOpen size={14} className="text-primary" />
+                  </button>
+                )}
+              </div>
+              {showNasBrowser && nasConfig && (
+                <div className="mt-2">
+                  <NasFolderBrowser
+                    nasConfig={nasConfig}
+                    selectedPath={form.nasPath}
+                    onSelectPath={(path) => {
+                      setForm(p => ({ ...p, nasPath: path }));
+                      setShowNasBrowser(false);
+                    }}
+                  />
+                </div>
+              )}
             </div>
 
             <div>

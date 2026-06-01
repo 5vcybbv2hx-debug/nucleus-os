@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/lib/useCurrentUser';
-import { Server, Wifi, WifiOff, Loader2, ChevronRight, Shield, Users, Eye, EyeOff, Check } from 'lucide-react';
+import { Server, Wifi, Loader2, ChevronRight, Shield, Users, Eye, EyeOff, Check, FolderOpen, RefreshCw } from 'lucide-react';
 import { ROLES } from '@/lib/constants';
 import { format } from 'date-fns';
+import NasFolderBrowser from '@/components/nas/NasFolderBrowser';
+import NasSyncSettings from '@/components/nas/NasSyncSettings';
 
 export default function Settings() {
   const { user } = useCurrentUser();
@@ -57,24 +59,28 @@ export default function Settings() {
 }
 
 function NasConfig() {
-  const [config, setConfig] = useState({ nasUrl: '', nasUsername: '', nasPassword: '', basePath: '/documents' });
+  const [config, setConfig] = useState({ nasUrl: '', nasUsername: '', nasPassword: '', basePath: '/Backoffice' });
   const [saved, setSaved] = useState(null);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
   const [showPw, setShowPw] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('verbindung'); // verbindung | browser | sync
 
-  useEffect(() => {
-    base44.entities.NasConfig.list().then(configs => {
-      if (configs[0]) setSaved(configs[0]);
-      if (configs[0]) setConfig({
+  const loadConfig = async () => {
+    const configs = await base44.entities.NasConfig.list();
+    if (configs[0]) {
+      setSaved(configs[0]);
+      setConfig({
         nasUrl: configs[0].nasUrl || '',
         nasUsername: configs[0].nasUsername || '',
         nasPassword: configs[0].nasPassword || '',
-        basePath: configs[0].basePath || '/documents',
+        basePath: configs[0].basePath || '/Backoffice',
       });
-    });
-  }, []);
+    }
+  };
+
+  useEffect(() => { loadConfig(); }, []);
 
   const handleTest = async () => {
     setTesting(true);
@@ -97,89 +103,127 @@ function NasConfig() {
     setSaving(false);
   };
 
+  const tabs = [
+    { key: 'verbindung', label: 'Verbindung' },
+    { key: 'browser', label: 'Ordner', disabled: !saved },
+    { key: 'sync', label: 'Auto-Sync', disabled: !saved },
+  ];
+
   return (
     <div className="bg-card border border-border rounded-2xl p-4 mb-4 space-y-4">
       <h3 className="text-sm font-semibold flex items-center gap-2">
         <Server size={16} className="text-primary" />
         Synology NAS / WebDAV
+        {saved?.connectionStatus === 'connected' && (
+          <span className="ml-auto flex items-center gap-1 text-[10px] text-green-400 font-normal">
+            <Wifi size={10} /> Verbunden
+          </span>
+        )}
       </h3>
 
-      {saved?.connectionStatus === 'connected' && (
-        <div className="flex items-center gap-2 p-2 bg-green-500/10 border border-green-500/20 rounded-xl text-xs text-green-400">
-          <Wifi size={12} /> Verbunden: {saved.nasUrl}
-        </div>
-      )}
+      {/* Tabs */}
+      <div className="flex gap-1 bg-secondary/30 rounded-xl p-1">
+        {tabs.map(t => (
+          <button
+            key={t.key}
+            onClick={() => !t.disabled && setActiveTab(t.key)}
+            disabled={t.disabled}
+            className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all ${
+              activeTab === t.key
+                ? 'bg-card text-foreground shadow-sm'
+                : t.disabled
+                  ? 'text-muted-foreground/40 cursor-not-allowed'
+                  : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      <div className="space-y-3">
-        <div>
-          <label className="text-xs text-muted-foreground font-medium">NAS URL (WebDAV)</label>
-          <input
-            value={config.nasUrl}
-            onChange={e => setConfig(p => ({ ...p, nasUrl: e.target.value }))}
-            className="w-full mt-1 bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5 font-mono"
-            placeholder="https://meinenas.synology.me:5006/dav"
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+      {/* Tab: Verbindung */}
+      {activeTab === 'verbindung' && (
+        <div className="space-y-3">
           <div>
-            <label className="text-xs text-muted-foreground font-medium">Benutzername</label>
+            <label className="text-xs text-muted-foreground font-medium">NAS URL (WebDAV)</label>
             <input
-              value={config.nasUsername}
-              onChange={e => setConfig(p => ({ ...p, nasUsername: e.target.value }))}
-              className="w-full mt-1 bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5"
-              placeholder="admin"
+              value={config.nasUrl}
+              onChange={e => setConfig(p => ({ ...p, nasUrl: e.target.value }))}
+              className="w-full mt-1 bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5 font-mono"
+              placeholder="https://meinenas.synology.me:5006/dav"
             />
           </div>
-          <div>
-            <label className="text-xs text-muted-foreground font-medium">Passwort</label>
-            <div className="relative mt-1">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs text-muted-foreground font-medium">Benutzername</label>
               <input
-                type={showPw ? 'text' : 'password'}
-                value={config.nasPassword}
-                onChange={e => setConfig(p => ({ ...p, nasPassword: e.target.value }))}
-                className="w-full bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5 pr-9"
+                value={config.nasUsername}
+                onChange={e => setConfig(p => ({ ...p, nasUsername: e.target.value }))}
+                className="w-full mt-1 bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5"
+                placeholder="admin"
               />
-              <button onClick={() => setShowPw(p => !p)} className="absolute right-2 top-1/2 -translate-y-1/2">
-                {showPw ? <EyeOff size={14} className="text-muted-foreground" /> : <Eye size={14} className="text-muted-foreground" />}
-              </button>
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground font-medium">Passwort</label>
+              <div className="relative mt-1">
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  value={config.nasPassword}
+                  onChange={e => setConfig(p => ({ ...p, nasPassword: e.target.value }))}
+                  className="w-full bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5 pr-9"
+                />
+                <button onClick={() => setShowPw(p => !p)} className="absolute right-2 top-1/2 -translate-y-1/2">
+                  {showPw ? <EyeOff size={14} className="text-muted-foreground" /> : <Eye size={14} className="text-muted-foreground" />}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-        <div>
-          <label className="text-xs text-muted-foreground font-medium">Basispfad</label>
-          <input
-            value={config.basePath}
-            onChange={e => setConfig(p => ({ ...p, basePath: e.target.value }))}
-            className="w-full mt-1 bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5 font-mono"
-            placeholder="/documents"
-          />
-        </div>
-      </div>
+          <div>
+            <label className="text-xs text-muted-foreground font-medium">Basispfad</label>
+            <input
+              value={config.basePath}
+              onChange={e => setConfig(p => ({ ...p, basePath: e.target.value }))}
+              className="w-full mt-1 bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5 font-mono"
+              placeholder="/Backoffice"
+            />
+          </div>
 
-      {testResult && (
-        <div className={`p-3 rounded-xl text-xs border ${testResult.success ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-          {testResult.success ? '✓ ' : '✗ '}{testResult.message}
+          {testResult && (
+            <div className={`p-3 rounded-xl text-xs border ${testResult.success ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+              {testResult.success ? '✓ ' : '✗ '}{testResult.message}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={handleTest}
+              disabled={testing || !config.nasUrl}
+              className="flex-1 py-2.5 border border-border rounded-xl text-sm font-medium text-foreground hover:bg-secondary/50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {testing ? <Loader2 size={14} className="animate-spin" /> : <Wifi size={14} />}
+              Testen
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={saving || !config.nasUrl}
+              className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+              Speichern
+            </button>
+          </div>
         </div>
       )}
 
-      <div className="flex gap-2">
-        <button
-          onClick={handleTest}
-          disabled={testing || !config.nasUrl}
-          className="flex-1 py-2.5 border border-border rounded-xl text-sm font-medium text-foreground hover:bg-secondary/50 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {testing ? <Loader2 size={14} className="animate-spin" /> : <Wifi size={14} />}
-          Testen
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={saving || !config.nasUrl}
-          className="flex-1 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-          Speichern
-        </button>
-      </div>
+      {/* Tab: Ordner-Browser */}
+      {activeTab === 'browser' && saved && (
+        <NasFolderBrowser nasConfig={saved} />
+      )}
+
+      {/* Tab: Auto-Sync */}
+      {activeTab === 'sync' && saved && (
+        <NasSyncSettings savedConfig={saved} onConfigUpdated={loadConfig} />
+      )}
     </div>
   );
 }

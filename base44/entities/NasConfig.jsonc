@@ -29,6 +29,22 @@
     },
     "connectionMessage": {
       "type": "string"
+    },
+    "syncInterval": {
+      "type": "string",
+      "enum": [
+        "5",
+        "15",
+        "30",
+        "60",
+        "180"
+      ],
+      "default": "60",
+      "description": "Sync-Intervall in Minuten"
+    },
+    "syncEnabled": {
+      "type": "boolean",
+      "default": true
     }
   },
   "required": [
