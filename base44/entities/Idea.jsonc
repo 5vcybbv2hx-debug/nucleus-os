@@ -1,0 +1,63 @@
+{
+  "name": "Idea",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "raw_input": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "organization": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "input_method": {
+      "type": "string",
+      "enum": [
+        "text",
+        "sprache",
+        "foto",
+        "link"
+      ]
+    },
+    "possible_value": {
+      "type": "string"
+    },
+    "estimated_effort": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Neu",
+        "Zu pr\u00fcfen",
+        "Geparkt",
+        "Als Aufgabe \u00fcbernommen",
+        "Als Vorgang \u00fcbernommen",
+        "Verworfen",
+        "Archiviert"
+      ],
+      "default": "Neu"
+    },
+    "review_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "converted_task": {
+      "type": "string"
+    },
+    "converted_case": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title",
+    "organization"
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "name": "DailyPlanItem",
+  "type": "object",
+  "properties": {
+    "daily_plan": {
+      "type": "string"
+    },
+    "task": {
+      "type": "string"
+    },
+    "sequence": {
+      "type": "number"
+    },
+    "suggested_start": {
+      "type": "string"
+    },
+    "duration": {
+      "type": "number"
+    },
+    "locked": {
+      "type": "boolean",
+      "default": false
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "daily_plan",
+    "task"
+  ]
+}

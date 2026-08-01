@@ -1,0 +1,55 @@
+{
+  "name": "DailyPlan",
+  "type": "object",
+  "properties": {
+    "user": {
+      "type": "string"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "day_mode": {
+      "type": "string",
+      "enum": [
+        "Viel Energie",
+        "Normal",
+        "M\u00fcde",
+        "Chaotischer Tag",
+        "Handwerkstag",
+        "Barbetrieb",
+        "Familie",
+        "Urlaub",
+        "Nur Dringendes"
+      ],
+      "default": "Normal"
+    },
+    "energy_level": {
+      "type": "string",
+      "enum": [
+        "niedrig",
+        "mittel",
+        "hoch"
+      ]
+    },
+    "available_time": {
+      "type": "number"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "manually_adjusted": {
+      "type": "boolean",
+      "default": false
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "user",
+    "date"
+  ]
+}

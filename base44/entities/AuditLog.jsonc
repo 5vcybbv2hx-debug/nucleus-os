@@ -26,6 +26,17 @@
     "timestamp": {
       "type": "string",
       "format": "date-time"
+    },
+    "user": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "manuell",
+        "system",
+        "automatik"
+      ]
     }
   },
   "required": [

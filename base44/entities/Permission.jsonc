@@ -1,0 +1,47 @@
+{
+  "name": "Permission",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string"
+    },
+    "organization": {
+      "type": "string"
+    },
+    "module": {
+      "type": "string"
+    },
+    "can_view": {
+      "type": "boolean",
+      "default": true
+    },
+    "can_create": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_edit": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_delete": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_approve": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_delegate": {
+      "type": "boolean",
+      "default": false
+    },
+    "can_view_confidential": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "role",
+    "organization"
+  ]
+}

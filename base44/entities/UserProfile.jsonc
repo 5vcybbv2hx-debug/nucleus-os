@@ -1,0 +1,36 @@
+{
+  "name": "UserProfile",
+  "type": "object",
+  "properties": {
+    "user": {
+      "type": "string"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "default_role": {
+      "type": "string",
+      "enum": [
+        "administrator",
+        "vertretung",
+        "buero"
+      ]
+    },
+    "preferred_organizations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "notification_preferences": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user"
+  ]
+}

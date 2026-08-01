@@ -1,0 +1,43 @@
+{
+  "name": "DailyReflection",
+  "type": "object",
+  "properties": {
+    "user": {
+      "type": "string"
+    },
+    "reflection_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "mood": {
+      "type": "string",
+      "enum": [
+        "sehr gut",
+        "gut",
+        "ok",
+        "schlecht",
+        "sehr schlecht"
+      ]
+    },
+    "what_went_well": {
+      "type": "string"
+    },
+    "what_was_difficult": {
+      "type": "string"
+    },
+    "what_was_learned": {
+      "type": "string"
+    },
+    "change_for_tomorrow": {
+      "type": "string"
+    },
+    "private": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user",
+    "reflection_date"
+  ]
+}

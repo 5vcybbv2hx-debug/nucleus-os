@@ -1,0 +1,42 @@
+{
+  "name": "Organization",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "short_name": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "betrieb",
+        "buero",
+        "privat",
+        "familie",
+        "executive",
+        "investment"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "aktiv",
+        "inaktiv",
+        "zukunftsziel"
+      ],
+      "default": "aktiv"
+    },
+    "icon": {
+      "type": "string"
+    },
+    "display_order": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}

@@ -28,11 +28,21 @@
     "status": {
       "type": "string",
       "enum": [
+        "Eingang",
+        "Geplant",
+        "In Bearbeitung",
+        "Teilweise erledigt",
+        "Wartet auf Antwort",
+        "Delegiert",
+        "Blockiert",
+        "Zur Pr\u00fcfung",
+        "Erledigt",
+        "Nicht mehr notwendig",
         "offen",
         "in_bearbeitung",
         "erledigt"
       ],
-      "default": "offen"
+      "default": "Eingang"
     },
     "assignedTo": {
       "type": "string"
@@ -47,10 +57,99 @@
     "isArchived": {
       "type": "boolean",
       "default": false
+    },
+    "organization": {
+      "type": "string"
+    },
+    "assignee": {
+      "type": "string"
+    },
+    "creator": {
+      "type": "string"
+    },
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "manuell",
+        "eingang",
+        "idee",
+        "routine",
+        "delegiert"
+      ]
+    },
+    "source_reference": {
+      "type": "string"
+    },
+    "calculated_priority": {
+      "type": "number"
+    },
+    "manual_priority": {
+      "type": "string",
+      "enum": [
+        "hoch",
+        "mittel",
+        "niedrig"
+      ]
+    },
+    "planned_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "estimated_duration": {
+      "type": "number"
+    },
+    "actual_duration": {
+      "type": "number"
+    },
+    "work_type": {
+      "type": "string",
+      "enum": [
+        "Verwaltung",
+        "Finanzen",
+        "Kreativ",
+        "Kommunikation",
+        "Operativ",
+        "Handwerklich",
+        "Familie",
+        "Pers\u00f6nlich"
+      ]
+    },
+    "energy_required": {
+      "type": "string",
+      "enum": [
+        "niedrig",
+        "mittel",
+        "hoch"
+      ]
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "Team",
+        "Beteiligte",
+        "Nur Pierre",
+        "Privat",
+        "Vertraulich Finanzen",
+        "Notfallzugriff"
+      ],
+      "default": "Team"
+    },
+    "recurring_reference": {
+      "type": "string"
+    },
+    "parent_case": {
+      "type": "string"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "shift_count": {
+      "type": "number",
+      "default": 0
     }
   },
   "required": [
-    "title",
-    "bereich"
+    "title"
   ]
 }

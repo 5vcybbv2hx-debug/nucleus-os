@@ -1,0 +1,35 @@
+{
+  "name": "Routine",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "organization": {
+      "type": "string"
+    },
+    "responsible_user": {
+      "type": "string"
+    },
+    "recurrence": {
+      "type": "string"
+    },
+    "preferred_work_type": {
+      "type": "string"
+    },
+    "estimated_duration": {
+      "type": "number"
+    },
+    "escalation_rule": {
+      "type": "string"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "title",
+    "organization"
+  ]
+}
