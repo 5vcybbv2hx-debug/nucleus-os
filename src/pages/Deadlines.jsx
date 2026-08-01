@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { format, differenceInDays } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { PriorityBadge, TaskStatusBadge } from '@/components/ui/StatusBadge';
+import LegacyBanner from '@/components/LegacyBanner';
 
 export default function Deadlines() {
   const [items, setItems] = useState([]);
@@ -41,6 +42,7 @@ export default function Deadlines() {
 
   return (
     <div className="px-4 pt-14 pb-4">
+      <LegacyBanner />
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-xl font-semibold">Fristen & Aufgaben</h1>

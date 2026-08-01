@@ -1,11 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { Sun, Inbox, CalendarClock, Wallet, LayoutGrid } from 'lucide-react';
+import { Sun, Inbox, CalendarClock, CheckSquare, LayoutGrid } from 'lucide-react';
 
 const ITEMS = [
   { to: '/', label: 'Heute', icon: Sun, end: true },
   { to: '/eingang', label: 'Eingang', icon: Inbox },
   { to: '/plan', label: 'Plan', icon: CalendarClock },
-  { to: '/finanzen', label: 'Finanzen', icon: Wallet, legacy: true },
+  { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare },
   { to: '/mehr', label: 'Mehr', icon: LayoutGrid },
 ];
 

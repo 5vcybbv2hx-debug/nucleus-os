@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Send, Sparkles, Loader2, RotateCcw } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import LegacyBanner from '@/components/LegacyBanner';
 
 const SUGGESTIONS = [
   'Was hat Metro letzten Monat gekostet?',
@@ -14,7 +15,7 @@ const SUGGESTIONS = [
 
 export default function Assistant() {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hallo! Ich bin dein Projekt-Assistent. Frag mich nach Dokumenten, Finanzen, Fristen oder Fahrzeugen — ich habe Zugriff auf alle deine Daten.' }
+    { role: 'assistant', content: 'Hallo! Ich bin dein Atlas-Assistent. Frag mich nach Dokumenten, Finanzen, Fristen oder Fahrzeugen — ich habe Zugriff auf alle deine Daten.' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -71,6 +72,7 @@ Formatiere die Antwort übersichtlich mit Markdown.
 
   return (
     <div className="flex flex-col h-screen pt-14 pb-20">
+      <LegacyBanner />
       {/* Header */}
       <div className="px-4 py-3 border-b border-border flex items-center justify-between">
         <div className="flex items-center gap-2">

@@ -14,7 +14,7 @@ import { base44 } from '@/api/base44Client';
  *   vertretung: canView für SANDRA, FAMILIE, BAR; canEdit für SANDRA, FAMILIE; keine confidential
  *   buero: canView für BAR, SANDRA; canEdit für BAR, SANDRA; keine confidential, kein approve
  *
- * Identifikation "Pierre": angemeldeter Benutzer mit E-Mail, die "pierre" enthält.
+ * Identifikation "Pierre": profile.default_role === 'administrator' (NICHT E-Mail-Substring).
  */
 const DEFAULTS = {
   administrator: { all: true },
@@ -56,8 +56,8 @@ export function usePermissions() {
   }, []);
 
   const role = profile?.default_role || 'buero';
-  const isPierre = !!(user?.email && user.email.toLowerCase().includes('pierre'));
-  const admin = role === 'administrator' || user?.role === 'admin';
+  const isPierre = role === 'administrator';
+  const admin = isPierre;
 
   // Permission-Datensatz suchen (role × organization × module)
   const findPerm = (organization, module) => {

@@ -1,3 +1,52 @@
+// ============================================================================
+// PROJEKT ATLAS — Atlas-Kernkonstanten
+// ============================================================================
+
+// ATLAS ORGANIZATION CONSTANTS (ersetzt BEREICHE für neue Komponenten)
+export const ORGANIZATIONS = {
+  BAR: { label: 'Bar', short_name: 'BAR', icon: '🍺', type: 'betrieb' },
+  SANDRA: { label: 'Sandras Büro', short_name: 'SANDRA', icon: '💼', type: 'buero' },
+  PIERRE: { label: 'Pierre privat', short_name: 'PIERRE', icon: '👤', type: 'privat' },
+  SANDRA_P: { label: 'Sandra privat', short_name: 'SANDRA_P', icon: '👤', type: 'privat' },
+  FAMILIE: { label: 'Familie / Gemeinsam', short_name: 'FAMILIE', icon: '🏠', type: 'familie' },
+  EXECUTIVE: { label: 'Executive Center', short_name: 'EXECUTIVE', icon: '👑', type: 'executive' },
+  IMMO: { label: 'Immobilienaufbau', short_name: 'IMMO', icon: '🏗️', type: 'investment' },
+};
+
+// ATLAS TASK STATUS (ersetzt STATUS_CONFIG für neue Komponenten)
+export const TASK_STATUS = {
+  'Eingang': { label: 'Eingang', color: 'text-blue-500', bg: 'bg-blue-500/10' },
+  'Geplant': { label: 'Geplant', color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+  'In Bearbeitung': { label: 'In Bearbeitung', color: 'text-amber-500', bg: 'bg-amber-500/10' },
+  'Teilweise erledigt': { label: 'Teilweise erledigt', color: 'text-cyan-500', bg: 'bg-cyan-500/10' },
+  'Wartet auf Antwort': { label: 'Wartet auf Antwort', color: 'text-orange-500', bg: 'bg-orange-500/10' },
+  'Delegiert': { label: 'Delegiert', color: 'text-purple-500', bg: 'bg-purple-500/10' },
+  'Blockiert': { label: 'Blockiert', color: 'text-red-500', bg: 'bg-red-500/10' },
+  'Zur Prüfung': { label: 'Zur Prüfung', color: 'text-yellow-500', bg: 'bg-yellow-500/10' },
+  'Erledigt': { label: 'Erledigt', color: 'text-green-500', bg: 'bg-green-500/10' },
+  'Nicht mehr notwendig': { label: 'Nicht mehr notwendig', color: 'text-gray-500', bg: 'bg-gray-500/10' },
+  'Archiviert': { label: 'Archiviert', color: 'text-gray-400', bg: 'bg-gray-400/10' },
+};
+
+// Legacy Status Mapping (nur für Anzeige alter Daten)
+export const LEGACY_STATUS_MAP = {
+  'offen': 'Eingang',
+  'in_bearbeitung': 'In Bearbeitung',
+  'erledigt': 'Erledigt',
+};
+
+// ATLAS ROLES (ersetzt ROLES für neue Komponenten)
+export const ATLAS_ROLES = {
+  administrator: { label: 'Administrator', description: 'Vollständiger Zugriff' },
+  vertretung: { label: 'Vertretung', description: 'Eingeschränkter Zugriff' },
+  buero: { label: 'Büro', description: 'Vereinfachte Arbeitsansicht' },
+};
+
+// ============================================================================
+// LEGACY - nicht für neue Atlas-Komponenten verwenden
+// ============================================================================
+
+// LEGACY - nicht für neue Atlas-Komponenten verwenden
 export const BEREICHE = {
   BAR: { label: 'Bar', color: 'text-bar', bg: 'bg-bar/10', border: 'border-bar/30', dot: 'bg-bar' },
   PRIVAT_FAMILIE: { label: 'Privat/Familie', color: 'text-privat', bg: 'bg-privat/10', border: 'border-privat/30', dot: 'bg-privat' },
@@ -36,12 +85,14 @@ export const PRIORITY_CONFIG = {
   niedrig: { label: 'Niedrig', color: 'text-gray-400', bg: 'bg-gray-400/10', dot: 'bg-gray-400' },
 };
 
+// LEGACY - nicht für neue Atlas-Komponenten verwenden
 export const STATUS_CONFIG = {
   offen: { label: 'Offen', color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
   in_bearbeitung: { label: 'In Bearbeitung', color: 'text-blue-400', bg: 'bg-blue-400/10' },
   erledigt: { label: 'Erledigt', color: 'text-green-400', bg: 'bg-green-400/10' },
 };
 
+// LEGACY - nicht für neue Atlas-Komponenten verwenden. Atlas verwendet ATLAS_ROLES.
 export const ROLES = {
   SUPERADMIN: { label: 'Super Admin', bereiche: ['BAR', 'PRIVAT_FAMILIE', 'NEBENGEWERBE'] },
   admin: { label: 'Super Admin', bereiche: ['BAR', 'PRIVAT_FAMILIE', 'NEBENGEWERBE'] },

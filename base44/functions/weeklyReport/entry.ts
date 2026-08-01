@@ -1,3 +1,5 @@
+// LEGACY — Wochenbericht basiert auf Legacy-Entitäten (Deadline, FinanceEntry, Vehicle, Task mit altem Status).
+// Wird in einem späteren Paket auf das Atlas-Datenmodell migriert.
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {

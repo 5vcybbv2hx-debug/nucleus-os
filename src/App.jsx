@@ -20,6 +20,7 @@ import Heute from '@/pages/Heute';
 import Eingang from '@/pages/Eingang';
 import Mehr from '@/pages/Mehr';
 import Plan from '@/pages/Plan';
+import Aufgaben from '@/pages/Aufgaben';
 import Administration from '@/pages/Administration';
 
 // Layout
@@ -54,6 +55,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Heute />} />
         <Route path="/eingang" element={<Eingang />} />
         <Route path="/plan" element={<Plan />} />
+        <Route path="/aufgaben" element={<Aufgaben />} />
         <Route path="/mehr" element={<Mehr />} />
         <Route path="/administration" element={<Administration />} />
         <Route path="/dokumente" element={<Documents />} />

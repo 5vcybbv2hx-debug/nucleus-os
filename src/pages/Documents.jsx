@@ -8,6 +8,7 @@ import QuickScanModal from '@/components/documents/QuickScanModal';
 import BereichBadge from '@/components/ui/BereichBadge';
 import { DOC_TYPES, DOC_STATUS, BEREICHE } from '@/lib/constants';
 import { AnimatePresence, motion } from 'framer-motion';
+import LegacyBanner from '@/components/LegacyBanner';
 
 export default function Documents() {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ export default function Documents() {
 
   return (
     <div className="px-4 pt-14 pb-4">
+      <LegacyBanner />
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>

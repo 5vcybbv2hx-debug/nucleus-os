@@ -8,8 +8,6 @@ const NAV = [
   { to: '/aufgaben', label: 'Aufgaben', icon: CheckSquare },
   { to: '/plan', label: 'Planung', icon: CalendarClock },
   { to: '/vorgaenge', label: 'Vorgänge', icon: FolderKanban, placeholder: true },
-  { to: '/finanzen', label: 'Finanzen', icon: Wallet, legacy: true },
-  { to: '/dokumente', label: 'Dokumente', icon: FileText, legacy: true },
   { to: '/wissen', label: 'Wissen', icon: BookOpen, placeholder: true },
   { to: '/ziele', label: 'Ziele', icon: Target, placeholder: true },
   { to: '/historie', label: 'Historie', icon: History, placeholder: true },

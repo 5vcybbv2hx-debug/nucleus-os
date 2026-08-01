@@ -6,6 +6,7 @@ import { de } from 'date-fns/locale';
 import { BEREICHE } from '@/lib/constants';
 import BereichBadge from '@/components/ui/BereichBadge';
 import VehicleModal from '@/components/vehicles/VehicleModal';
+import LegacyBanner from '@/components/LegacyBanner';
 
 function urgencyColor(dateStr) {
   if (!dateStr) return null;
@@ -66,6 +67,7 @@ export default function Vehicles() {
 
   return (
     <div className="px-4 pt-14 pb-24">
+      <LegacyBanner />
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-xl font-semibold">Fahrzeuge</h1>

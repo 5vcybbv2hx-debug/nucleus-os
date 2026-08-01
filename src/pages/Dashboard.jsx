@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, addDays, isBefore } from 'date-fns';
 import { de } from 'date-fns/locale';
+import LegacyBanner from '@/components/LegacyBanner';
 
 export default function Dashboard() {
   const { user } = useCurrentUser();
@@ -68,6 +69,7 @@ export default function Dashboard() {
 
   return (
     <div className="px-4 pt-14 pb-4">
+      <LegacyBanner />
       {/* Header */}
       <div className="mb-6">
         <div className="text-xs text-muted-foreground font-medium uppercase tracking-widest mb-1">

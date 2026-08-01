@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import { Server, Wifi, Loader2, ChevronRight, Shield, Users, Eye, EyeOff, Check, FolderOpen, RefreshCw } from 'lucide-react';
 import { ROLES } from '@/lib/constants';
+import { usePermissions } from '@/lib/usePermissions';
 import { format } from 'date-fns';
 import NasFolderBrowser from '@/components/nas/NasFolderBrowser';
 import NasSyncSettings from '@/components/nas/NasSyncSettings';
@@ -10,7 +11,8 @@ import NasSyncSettings from '@/components/nas/NasSyncSettings';
 export default function Settings() {
   const { user } = useCurrentUser();
   const [activeSection, setActiveSection] = useState('');
-  const isSuperAdmin = user?.role === 'SUPERADMIN' || user?.role === 'admin';
+  const perms = usePermissions();
+  const isSuperAdmin = perms.isAdmin();
 
   const sections = [
     { key: 'nas', icon: Server, label: 'NAS / Synology', subtitle: 'WebDAV Verbindung', adminOnly: true },

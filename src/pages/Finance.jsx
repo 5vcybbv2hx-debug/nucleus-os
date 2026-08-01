@@ -6,6 +6,7 @@ import { BEREICHE, FINANCE_CATEGORIES } from '@/lib/constants';
 import { AnimatePresence, motion } from 'framer-motion';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { de } from 'date-fns/locale';
+import LegacyBanner from '@/components/LegacyBanner';
 
 export default function Finance() {
   const [entries, setEntries] = useState([]);
@@ -53,6 +54,7 @@ export default function Finance() {
 
   return (
     <div className="px-4 pt-14 pb-4">
+      <LegacyBanner />
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-xl font-semibold">Finanzen</h1>

@@ -9,6 +9,7 @@ import NasFolderBrowser from '@/components/nas/NasFolderBrowser';
 import CashBookEntryForm from '@/components/cashbook/CashBookEntryForm';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths, parseISO } from 'date-fns';
 import { de } from 'date-fns/locale';
+import LegacyBanner from '@/components/LegacyBanner';
 
 export default function CashBook() {
   const [entries, setEntries] = useState([]);
@@ -154,6 +155,7 @@ export default function CashBook() {
 
   return (
     <div className="px-4 pt-14 pb-24">
+      <LegacyBanner />
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
