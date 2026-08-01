@@ -14,7 +14,7 @@ const SUGGESTIONS = [
 
 export default function Assistant() {
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hallo! Ich bin dein BackOffice-Assistent. Frag mich nach Dokumenten, Finanzen, Fristen oder Fahrzeugen — ich habe Zugriff auf alle deine Daten.' }
+    { role: 'assistant', content: 'Hallo! Ich bin dein Projekt-Assistent. Frag mich nach Dokumenten, Finanzen, Fristen oder Fahrzeugen — ich habe Zugriff auf alle deine Daten.' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,7 +39,7 @@ export default function Assistant() {
     ]);
 
     const context = `
-Du bist ein intelligenter BackOffice-Assistent. Heutiges Datum: ${new Date().toLocaleDateString('de-DE')}.
+Du bist ein intelligenter Projekt-Assistent. Heutiges Datum: ${new Date().toLocaleDateString('de-DE')}.
 
 DOKUMENTE (${docs.length} insgesamt):
 ${docs.slice(0, 20).map(d => `- ${d.title} | ${d.documentType} | ${d.bereich} | ${d.status} | Betrag: ${d.ocrBetrag || '-'}€ | Absender: ${d.ocrAbsender || '-'} | Datum: ${d.ocrDatum || d.created_date}`).join('\n')}

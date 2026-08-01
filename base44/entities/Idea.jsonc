@@ -54,6 +54,14 @@
     },
     "converted_case": {
       "type": "string"
+    },
+    "isArchived": {
+      "type": "boolean",
+      "default": false
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time"
     }
   },
   "required": [

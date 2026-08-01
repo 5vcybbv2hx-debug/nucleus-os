@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Inbox, CheckSquare, Lightbulb, AlertTriangle, MoreVertical, User, Check, Archive, Trash2 } from 'lucide-react';
+import { Inbox, CheckSquare, Lightbulb, AlertTriangle, MoreVertical, Check, Archive } from 'lucide-react';
 import { getOrgMeta } from '@/lib/organizations';
+import { usePermissions } from '@/lib/usePermissions';
+import { logAudit } from '@/lib/audit';
 
 export default function Eingang() {
+  const perms = usePermissions();
   const [tasks, setTasks] = useState([]);
   const [ideas, setIdeas] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [menuFor, setMenuFor] = useState(null); // { type, id }
+  const [menuFor, setMenuFor] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -22,41 +25,62 @@ export default function Eingang() {
 
   useEffect(() => { load(); }, []);
 
-  const newTasks = tasks.filter(t => t.status === 'Eingang' && !t.isArchived);
-  const unclear = tasks.filter(t => (t.status === 'Blockiert' || t.status === 'Wartet auf Antwort') && !t.isArchived);
-  const newIdeas = ideas.filter(i => i.status === 'Neu');
+  // Nur sichtbare + nicht archivierte Aufgaben (Permissions + visibility)
+  const visibleTasks = tasks.filter(t => !t.isArchived && t.status !== 'Archiviert' && perms.canViewTask(t));
+  const newTasks = visibleTasks.filter(t => t.status === 'Eingang');
+  const unclear = visibleTasks.filter(t => t.status === 'Blockiert' || t.status === 'Wartet auf Antwort');
+  const newIdeas = ideas.filter(i => i.status === 'Neu' && !i.isArchived);
 
   const handleTaskAction = async (task, action) => {
     setMenuFor(null);
-    if (action === 'plan') await base44.entities.Task.update(task.id, { status: 'Geplant' });
-    if (action === 'archive') await base44.entities.Task.update(task.id, { isArchived: true });
-    if (action === 'delete') await base44.entities.Task.delete(task.id);
+    if (action === 'plan') {
+      const prev = { status: task.status };
+      await base44.entities.Task.update(task.id, { status: 'Geplant' });
+      await logAudit({ action: 'status_change', entityType: 'Task', entityId: task.id, previousValue: prev, newValue: { status: 'Geplant' } });
+    }
+    if (action === 'archive') {
+      const prev = { status: task.status, isArchived: task.isArchived };
+      const upd = { status: 'Archiviert', isArchived: true, archived_at: new Date().toISOString() };
+      await base44.entities.Task.update(task.id, upd);
+      await logAudit({ action: 'archive', entityType: 'Task', entityId: task.id, previousValue: prev, newValue: upd });
+    }
     load();
   };
 
   const handleIdeaAction = async (idea, action) => {
     setMenuFor(null);
     if (action === 'task') {
-      await base44.entities.Task.create({
+      const payload = {
         title: idea.title,
         organization: idea.organization,
         source_type: 'idee',
         source_reference: idea.id,
         status: 'Eingang',
         visibility: 'Team',
-      });
-      await base44.entities.Idea.update(idea.id, { status: 'Als Aufgabe übernommen' });
+      };
+      const created = await base44.entities.Task.create(payload);
+      await base44.entities.Idea.update(idea.id, { status: 'Als Aufgabe übernommen', converted_task: created.id });
+      await logAudit({ action: 'create', entityType: 'Task', entityId: created.id, newValue: payload });
+      await logAudit({ action: 'status_change', entityType: 'Idea', entityId: idea.id, previousValue: { status: 'Neu' }, newValue: { status: 'Als Aufgabe übernommen' } });
     }
-    if (action === 'park') await base44.entities.Idea.update(idea.id, { status: 'Geparkt' });
-    if (action === 'discard') await base44.entities.Idea.update(idea.id, { status: 'Verworfen' });
+    if (action === 'park') {
+      const prev = { status: idea.status };
+      await base44.entities.Idea.update(idea.id, { status: 'Geparkt' });
+      await logAudit({ action: 'status_change', entityType: 'Idea', entityId: idea.id, previousValue: prev, newValue: { status: 'Geparkt' } });
+    }
+    if (action === 'discard') {
+      const prev = { status: idea.status };
+      await base44.entities.Idea.update(idea.id, { status: 'Verworfen' });
+      await logAudit({ action: 'status_change', entityType: 'Idea', entityId: idea.id, previousValue: prev, newValue: { status: 'Verworfen' } });
+    }
     load();
   };
 
   const renderMenu = (item, type) => {
     if (!menuFor || menuFor.id !== item.id) return null;
     const opts = type === 'idea'
-      ? [{ k: 'task', label: 'Als Aufgabe übernehmen', icon: Check }, { k: 'park', label: 'Parken', icon: Archive }, { k: 'discard', label: 'Verwerfen', icon: Trash2 }]
-      : [{ k: 'plan', label: 'Einplanen', icon: Check }, { k: 'archive', label: 'Archivieren', icon: Archive }, { k: 'delete', label: 'Löschen', icon: Trash2 }];
+      ? [{ k: 'task', label: 'Als Aufgabe übernehmen', icon: Check }, { k: 'park', label: 'Parken', icon: Archive }, { k: 'discard', label: 'Verwerfen', icon: Archive }]
+      : [{ k: 'plan', label: 'Einplanen', icon: Check }, { k: 'archive', label: 'Archivieren', icon: Archive }];
     return (
       <div className="absolute right-2 top-10 z-20 bg-popover border border-border rounded-xl shadow-xl py-1 w-44">
         {opts.map(o => {
@@ -93,7 +117,6 @@ export default function Eingang() {
         <div className="space-y-2">{[...Array(4)].map((_,i) => <div key={i} className="h-20 bg-card rounded-2xl animate-pulse" />)}</div>
       ) : (
         <>
-          {/* New Tasks */}
           <section className="mb-6">
             <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><CheckSquare size={16} /> Neue Aufgaben <span className="text-muted-foreground/60 font-normal">({newTasks.length})</span></h2>
             {newTasks.length === 0 ? (
@@ -104,7 +127,7 @@ export default function Eingang() {
                 <Card key={t.id} onMenu={{ id: t.id, type: 'task' }}>
                   <div className="pr-8">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`px-2 py-0.5 rounded-full border text-[11px] ${org.chip}`}>{org.emoji} {org.short}</span>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-medium ${org.chip}`}><span>{org.emoji}</span><span>{org.short}</span></span>
                     </div>
                     <div className="text-sm font-medium">{t.title}</div>
                     {t.description && <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{t.description}</div>}
@@ -114,7 +137,6 @@ export default function Eingang() {
             })}
           </section>
 
-          {/* New Ideas */}
           <section className="mb-6">
             <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Lightbulb size={16} /> Neue Ideen <span className="text-muted-foreground/60 font-normal">({newIdeas.length})</span></h2>
             {newIdeas.length === 0 ? (
@@ -125,7 +147,7 @@ export default function Eingang() {
                 <Card key={i.id} onMenu={{ id: i.id, type: 'idea' }}>
                   <div className="pr-8">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`px-2 py-0.5 rounded-full border text-[11px] ${org.chip}`}>{org.emoji} {org.short}</span>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-medium ${org.chip}`}><span>{org.emoji}</span><span>{org.short}</span></span>
                     </div>
                     <div className="text-sm font-medium">{i.title}</div>
                     {i.raw_input && <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{i.raw_input}</div>}
@@ -135,7 +157,6 @@ export default function Eingang() {
             })}
           </section>
 
-          {/* Unclear */}
           <section className="mb-6">
             <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><AlertTriangle size={16} /> Ungeklärte Einträge <span className="text-muted-foreground/60 font-normal">({unclear.length})</span></h2>
             {unclear.length === 0 ? (
@@ -147,7 +168,7 @@ export default function Eingang() {
                   <div className="pr-8">
                     <div className="flex items-center gap-2 mb-1">
                       <AlertTriangle size={13} className="text-amber-400" />
-                      <span className={`px-2 py-0.5 rounded-full border text-[11px] ${org.chip}`}>{org.emoji} {org.short}</span>
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] font-medium ${org.chip}`}><span>{org.emoji}</span><span>{org.short}</span></span>
                       <span className="text-[11px] text-amber-400">{t.status}</span>
                     </div>
                     <div className="text-sm font-medium">{t.title}</div>

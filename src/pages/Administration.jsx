@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Shield, Plus, Trash2, Building2, Users, KeyRound, Loader2 } from 'lucide-react';
-import { getOrgMeta, DAY_MODES } from '@/lib/organizations';
+import { Shield, Plus, Archive, RotateCcw, Building2, Users, KeyRound, Loader2 } from 'lucide-react';
+import { getOrgMeta } from '@/lib/organizations';
+import { usePermissions } from '@/lib/usePermissions';
+import { logAudit } from '@/lib/audit';
 
 const ORG_TYPES = ['betrieb', 'buero', 'privat', 'familie', 'executive', 'investment'];
 const ORG_ICONS = ['bar', 'briefcase', 'user', 'home', 'crown', 'building'];
 
 export default function Administration() {
-  const [user, setUser] = useState(null);
+  const perms = usePermissions();
   const [orgs, setOrgs] = useState([]);
   const [roles, setRoles] = useState([]);
   const [permissions, setPermissions] = useState([]);
@@ -31,14 +33,12 @@ export default function Administration() {
   };
 
   useEffect(() => {
-    base44.auth.me().then(u => {
-      setUser(u);
-      if (u?.role && u.role !== 'admin') return;
-      load();
-    }).catch(() => {});
-  }, []);
+    if (!perms.user) return;
+    if (!perms.isAdmin()) return;
+    load();
+  }, [perms.user, perms.isAdmin()]);
 
-  if (user && user.role !== 'admin') {
+  if (perms.user && !perms.isAdmin()) {
     return (
       <div className="px-4 pt-10 text-center">
         <Shield size={32} className="mx-auto text-muted-foreground/40 mb-3" />
@@ -50,7 +50,9 @@ export default function Administration() {
   const addOrg = async () => {
     if (!newOrg.name) return;
     setAdding(true);
-    await base44.entities.Organization.create({ ...newOrg, display_order: orgs.length + 1 });
+    const payload = { ...newOrg, display_order: orgs.length + 1 };
+    const created = await base44.entities.Organization.create(payload);
+    await logAudit({ action: 'create', entityType: 'Organization', entityId: created.id, newValue: payload });
     setNewOrg({ name: '', short_name: '', type: 'betrieb', icon: 'bar', status: 'aktiv' });
     setAdding(false);
     load();
@@ -59,16 +61,34 @@ export default function Administration() {
   const addRole = async () => {
     if (!newRole.name) return;
     setAdding(true);
-    await base44.entities.Role.create(newRole);
+    const payload = { ...newRole, active: true };
+    const created = await base44.entities.Role.create(payload);
+    await logAudit({ action: 'create', entityType: 'Role', entityId: created.id, newValue: payload });
     setNewRole({ name: '', description: '' });
     setAdding(false);
     load();
   };
 
-  const del = async (entity, id) => {
-    await base44.entities[entity].delete(id);
+  // Organisation: deaktivieren statt löschen
+  const toggleOrg = async (o) => {
+    const prev = { status: o.status };
+    const newStatus = o.status === 'aktiv' ? 'inaktiv' : 'aktiv';
+    await base44.entities.Organization.update(o.id, { status: newStatus });
+    await logAudit({ action: newStatus === 'inaktiv' ? 'deactivate' : 'reactivate', entityType: 'Organization', entityId: o.id, previousValue: prev, newValue: { status: newStatus } });
     load();
   };
+
+  // Rolle: deaktivieren statt löschen
+  const toggleRole = async (r) => {
+    const prev = { active: r.active };
+    const newActive = !r.active;
+    await base44.entities.Role.update(r.id, { active: newActive });
+    await logAudit({ action: newActive ? 'reactivate' : 'deactivate', entityType: 'Role', entityId: r.id, previousValue: prev, newValue: { active: newActive } });
+    load();
+  };
+
+  const activeOrgs = orgs.filter(o => o.status === 'aktiv');
+  const inactiveOrgs = orgs.filter(o => o.status !== 'aktiv');
 
   return (
     <div className="px-4 pt-6 pb-4 lg:px-8">
@@ -77,7 +97,6 @@ export default function Administration() {
         <h1 className="text-xl font-semibold">Administration</h1>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-1 p-1 bg-secondary/40 rounded-xl mb-5">
         {[
           { k: 'orgs', label: 'Bereiche', icon: Building2 },
@@ -100,8 +119,8 @@ export default function Administration() {
         <div className="flex justify-center py-12"><Loader2 size={22} className="animate-spin text-muted-foreground" /></div>
       ) : tab === 'orgs' ? (
         <div>
-          <div className="space-y-2 mb-5">
-            {orgs.map(o => {
+          <div className="space-y-2 mb-3">
+            {activeOrgs.map(o => {
               const m = getOrgMeta(o.short_name);
               return (
                 <div key={o.id} className="p-3.5 bg-card border border-border rounded-2xl flex items-center gap-3">
@@ -110,13 +129,35 @@ export default function Administration() {
                     <div className="text-sm font-medium">{o.name}</div>
                     <div className="text-xs text-muted-foreground">{o.short_name} · {o.type} · {o.status}</div>
                   </div>
-                  <button onClick={() => del('Organization', o.id)} className="p-1.5 hover:bg-destructive/10 rounded-lg">
-                    <Trash2 size={15} className="text-muted-foreground hover:text-destructive" />
+                  <button onClick={() => toggleOrg(o)} className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-secondary rounded-lg transition-colors">
+                    <Archive size={13} /> Deaktivieren
                   </button>
                 </div>
               );
             })}
           </div>
+          {inactiveOrgs.length > 0 && (
+            <div className="mb-4">
+              <div className="text-xs text-muted-foreground font-medium mb-2">Inaktiv</div>
+              <div className="space-y-2">
+                {inactiveOrgs.map(o => {
+                  const m = getOrgMeta(o.short_name);
+                  return (
+                    <div key={o.id} className="p-3.5 bg-secondary/30 border border-border rounded-2xl flex items-center gap-3 opacity-60">
+                      <span className="text-xl">{m.emoji}</span>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium">{o.name}</div>
+                        <div className="text-xs text-muted-foreground">{o.short_name} · {o.type} · {o.status}</div>
+                      </div>
+                      <button onClick={() => toggleOrg(o)} className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-secondary rounded-lg transition-colors">
+                        <RotateCcw size={13} /> Reaktivieren
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
           <div className="p-4 bg-card border border-border rounded-2xl space-y-3">
             <div className="text-sm font-semibold flex items-center gap-2"><Plus size={15} /> Neuer Bereich</div>
             <input value={newOrg.name} onChange={e=>setNewOrg(p=>({...p,name:e.target.value}))} placeholder="Name" className="w-full bg-input border border-border rounded-xl px-3 py-2.5 text-sm" />
@@ -126,9 +167,6 @@ export default function Administration() {
                 {ORG_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
-            <select value={newOrg.icon} onChange={e=>setNewOrg(p=>({...p,icon:e.target.value}))} className="w-full bg-input border border-border rounded-xl px-3 py-2.5 text-sm">
-              {ORG_ICONS.map(i => <option key={i} value={i}>{i}</option>)}
-            </select>
             <button onClick={addOrg} disabled={adding || !newOrg.name} className="w-full py-3 bg-primary text-primary-foreground rounded-xl text-sm font-semibold disabled:opacity-50">
               {adding ? '…' : 'Bereich anlegen'}
             </button>
@@ -136,8 +174,8 @@ export default function Administration() {
         </div>
       ) : tab === 'roles' ? (
         <div>
-          <div className="space-y-2 mb-5">
-            {roles.map(r => (
+          <div className="space-y-2 mb-3">
+            {roles.filter(r => r.active).map(r => (
               <div key={r.id} className="p-3.5 bg-card border border-border rounded-2xl flex items-center gap-3">
                 <Users size={18} className="text-muted-foreground" />
                 <div className="flex-1">
@@ -145,12 +183,31 @@ export default function Administration() {
                   {r.description && <div className="text-xs text-muted-foreground">{r.description}</div>}
                 </div>
                 {r.system_role && <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded">System</span>}
-                <button onClick={() => del('Role', r.id)} className="p-1.5 hover:bg-destructive/10 rounded-lg">
-                  <Trash2 size={15} className="text-muted-foreground hover:text-destructive" />
+                <button onClick={() => toggleRole(r)} className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-secondary rounded-lg transition-colors">
+                  <Archive size={13} /> Deaktivieren
                 </button>
               </div>
             ))}
           </div>
+          {roles.filter(r => !r.active).length > 0 && (
+            <div className="mb-4">
+              <div className="text-xs text-muted-foreground font-medium mb-2">Inaktiv</div>
+              <div className="space-y-2">
+                {roles.filter(r => !r.active).map(r => (
+                  <div key={r.id} className="p-3.5 bg-secondary/30 border border-border rounded-2xl flex items-center gap-3 opacity-60">
+                    <Users size={18} className="text-muted-foreground" />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium">{r.name}</div>
+                      {r.description && <div className="text-xs text-muted-foreground">{r.description}</div>}
+                    </div>
+                    <button onClick={() => toggleRole(r)} className="flex items-center gap-1 px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-secondary rounded-lg transition-colors">
+                      <RotateCcw size={13} /> Reaktivieren
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="p-4 bg-card border border-border rounded-2xl space-y-3">
             <div className="text-sm font-semibold flex items-center gap-2"><Plus size={15} /> Neue Rolle</div>
             <input value={newRole.name} onChange={e=>setNewRole(p=>({...p,name:e.target.value}))} placeholder="Rollenname" className="w-full bg-input border border-border rounded-xl px-3 py-2.5 text-sm" />
@@ -163,7 +220,7 @@ export default function Administration() {
       ) : (
         <div>
           {permissions.length === 0 ? (
-            <p className="text-xs text-muted-foreground/60 p-3 border border-dashed border-border rounded-xl">Noch keine Berechtigungen vergeben.</p>
+            <p className="text-xs text-muted-foreground/60 p-3 border border-dashed border-border rounded-xl">Noch keine Berechtigungen vergeben. Default-Berechtigungen sind aktiv (administrator / vertretung / buero).</p>
           ) : (
             <div className="space-y-2">
               {permissions.map(p => (

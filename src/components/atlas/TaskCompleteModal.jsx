@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { X, Check, SkipForward } from 'lucide-react';
-import { WORK_TYPES } from '@/lib/organizations';
+import { logAudit } from '@/lib/audit';
 
 const DURATIONS = [5, 15, 30, 60];
 const NEXT_OPTIONS = ['Beim Thema bleiben', 'Verwaltung', 'Kreativ', 'Handwerklich', 'Kurze Aufgabe', 'Etwas anderes', 'Für heute genug'];
 
 export default function TaskCompleteModal({ task, onClose, onSuggest }) {
-  const [step, setStep] = useState(0); // 0 = duration, 1 = next, 2 = done
+  const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const finish = async (duration, nextMode) => {
@@ -18,6 +18,7 @@ export default function TaskCompleteModal({ task, onClose, onSuggest }) {
     };
     if (duration != null) update.actual_duration = duration;
     await base44.entities.Task.update(task.id, update);
+    await logAudit({ action: 'status_change', entityType: 'Task', entityId: task.id, previousValue: { status: task.status }, newValue: update });
     setSaving(false);
     onSuggest?.(nextMode);
     onClose?.();

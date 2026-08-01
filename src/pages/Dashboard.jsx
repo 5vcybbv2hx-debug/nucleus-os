@@ -77,7 +77,7 @@ export default function Dashboard() {
           {greeting}, {firstName} 👋
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">
-          {user?.role || 'Benutzer'} · BackOffice OS
+          {user?.role || 'Benutzer'} · Projekt Atlas
         </p>
       </div>
 

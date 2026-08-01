@@ -2,13 +2,14 @@ import { motion } from 'framer-motion';
 import { format, parseISO, differenceInCalendarDays } from 'date-fns';
 import { de } from 'date-fns/locale';
 import { CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
-import { getOrgMeta, TASK_STATUS_LABELS } from '@/lib/organizations';
+import { getOrgMeta, TASK_STATUS_LABELS, getDueDate } from '@/lib/organizations';
 
 export default function TaskCard({ task, onComplete, compact }) {
   const org = getOrgMeta(task.organization);
+  const due = getDueDate(task);
   let dueLabel = null, dueUrgent = false;
-  if (task.dueDate) {
-    const d = parseISO(task.dueDate);
+  if (due) {
+    const d = parseISO(due);
     const days = differenceInCalendarDays(d, new Date());
     dueLabel = days === 0 ? 'Heute' : days === 1 ? 'Morgen' : days < 0 ? `${Math.abs(days)} Tage überfällig` : `in ${days} Tagen`;
     dueUrgent = days <= 2;

@@ -1,27 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { X, Loader2 } from 'lucide-react';
 import { getOrgMeta, WORK_TYPES } from '@/lib/organizations';
+import { usePermissions } from '@/lib/usePermissions';
+import { logAudit } from '@/lib/audit';
 
-const STATUSES = ['Eingang', 'Geplant', 'In Bearbeitung'];
 const VISIBILITIES = ['Team', 'Beteiligte', 'Nur Pierre', 'Privat', 'Vertraulich Finanzen', 'Notfallzugriff'];
-const SOURCES = ['manuell', 'eingang', 'idee', 'routine', 'delegiert'];
 
 export default function TaskCreateModal({ onClose }) {
-  const [form, setForm] = useState({ title: '', description: '', organization: '', status: 'Eingang', manual_priority: 'mittel', work_type: '', visibility: 'Team', source_type: 'manuell', dueDate: '', energy_required: 'mittel' });
-  const [orgs, setOrgs] = useState([]);
+  const perms = usePermissions();
+  const [form, setForm] = useState({ title: '', description: '', organization: '', status: 'Eingang', manual_priority: 'mittel', work_type: '', visibility: 'Team', source_type: 'manuell', due_date: '', energy_required: 'mittel' });
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    base44.entities.Organization.list().then(list => {
-      setOrgs(list.filter(o => o.status === 'aktiv').sort((a,b)=>(a.display_order||0)-(b.display_order||0)));
-    });
-  }, []);
+  // Organization-Dropdown: nur aktive + per canView sichtbare
+  const orgs = perms.activeOrgs.filter(o => perms.canView('aufgaben', o));
 
   const handleSave = async () => {
     if (!form.title || !form.organization) return;
     setSaving(true);
-    await base44.entities.Task.create({ ...form });
+    const me = perms.user;
+    const payload = { ...form, creator: me?.id };
+    const created = await base44.entities.Task.create(payload);
+    await logAudit({ action: 'create', entityType: 'Task', entityId: created.id, newValue: payload });
     setSaving(false);
     onClose?.();
   };
@@ -45,18 +45,19 @@ export default function TaskCreateModal({ onClose }) {
         <div>
           <label className="text-xs text-muted-foreground font-medium">Bereich *</label>
           <div className="mt-1 grid grid-cols-2 gap-2">
-            {orgs.map(o => {
-              const m = getOrgMeta(o.short_name);
+            {orgs.map(short => {
+              const m = getOrgMeta(short);
               return (
-                <button key={o.id} onClick={()=>setForm(p=>({...p,organization:o.short_name}))}
+                <button key={short} onClick={()=>setForm(p=>({...p,organization:short}))}
                   className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition-all ${
-                    form.organization === o.short_name ? `${m.chip} border-current` : 'border-border text-muted-foreground hover:bg-secondary'
+                    form.organization === short ? `${m.chip} border-current` : 'border-border text-muted-foreground hover:bg-secondary'
                   }`}>
                   <span>{m.emoji}</span> {m.short}
                 </button>
               );
             })}
           </div>
+          {orgs.length === 0 && <p className="text-xs text-muted-foreground mt-1">Keine sichtbaren Bereiche.</p>}
         </div>
 
         <div>
@@ -68,7 +69,7 @@ export default function TaskCreateModal({ onClose }) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="text-xs text-muted-foreground font-medium">Fällig am</label>
-            <input type="date" value={form.dueDate} onChange={e=>setForm(p=>({...p,dueDate:e.target.value}))}
+            <input type="date" value={form.due_date} onChange={e=>setForm(p=>({...p,due_date:e.target.value}))}
               className="w-full mt-1 bg-input border border-border text-foreground text-sm rounded-xl px-3 py-2.5" />
           </div>
           <div>

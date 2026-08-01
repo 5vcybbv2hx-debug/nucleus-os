@@ -74,7 +74,7 @@ body { font-family: -apple-system, Arial, sans-serif; background: #0f1117; color
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 </style></head>
 <body>
-<div class="title">📊 BackOffice OS · Wochenbericht</div>
+<div class="title">📊 Projekt Atlas · Wochenbericht</div>
 <div class="subtitle" style="margin-bottom:20px">${now.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</div>
 
 <div class="grid2">
@@ -118,7 +118,7 @@ ${pendingDocs.length > 0 ? `
   ${pendingDocs.slice(0, 5).map(d => `<div class="item">${d.title} — ${d.documentType}</div>`).join('')}
 </div>` : ''}
 
-<div style="text-align:center;padding-top:20px;font-size:11px;color:#374151">BackOffice OS — Automatischer Wochenbericht</div>
+<div style="text-align:center;padding-top:20px;font-size:11px;color:#374151">Projekt Atlas — Automatischer Wochenbericht</div>
 </body></html>`;
 
     // Send to all admin users
@@ -127,7 +127,7 @@ ${pendingDocs.length > 0 ? `
       if (u.email) {
         await base44.asServiceRole.integrations.Core.SendEmail({
           to: u.email,
-          subject: `📊 BackOffice Wochenbericht — ${now.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })}`,
+          subject: `📊 Projekt Atlas Wochenbericht — ${now.toLocaleDateString('de-DE', { day: 'numeric', month: 'long', year: 'numeric' })}`,
           body: htmlBody,
         });
       }

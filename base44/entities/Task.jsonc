@@ -38,6 +38,7 @@
         "Zur Pr\u00fcfung",
         "Erledigt",
         "Nicht mehr notwendig",
+        "Archiviert",
         "offen",
         "in_bearbeitung",
         "erledigt"
@@ -51,12 +52,20 @@
       "type": "string",
       "format": "date"
     },
+    "due_date": {
+      "type": "string",
+      "format": "date"
+    },
     "linkedDocumentId": {
       "type": "string"
     },
     "isArchived": {
       "type": "boolean",
       "default": false
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time"
     },
     "organization": {
       "type": "string"

@@ -1,32 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { X, Loader2, Mic, Sparkles } from 'lucide-react';
 import { getOrgMeta } from '@/lib/organizations';
+import { usePermissions } from '@/lib/usePermissions';
+import { logAudit } from '@/lib/audit';
 
 export default function IdeaCaptureModal({ onClose, onSuccess }) {
+  const perms = usePermissions();
   const [text, setText] = useState('');
   const [organization, setOrganization] = useState('');
-  const [orgs, setOrgs] = useState([]);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    base44.entities.Organization.list().then(list => {
-      setOrgs(list.filter(o => o.status === 'aktiv').sort((a,b) => (a.display_order||0)-(b.display_order||0)));
-    });
-  }, []);
+  const orgs = perms.activeOrgs.filter(o => perms.canView('ideen', o));
 
   const handleSave = async () => {
     if (!text.trim() || !organization) return;
     setSaving(true);
     const title = text.trim().split('\n')[0].slice(0, 80);
-    await base44.entities.Idea.create({
+    const payload = {
       title,
       raw_input: text.trim(),
       summary: text.trim().slice(0, 200),
       organization,
       input_method: 'text',
       status: 'Neu',
-    });
+    };
+    const created = await base44.entities.Idea.create(payload);
+    await logAudit({ action: 'create', entityType: 'Idea', entityId: created.id, newValue: payload });
     setSaving(false);
     onSuccess?.();
     onClose?.();
@@ -56,18 +56,19 @@ export default function IdeaCaptureModal({ onClose, onSuccess }) {
         <div>
           <label className="text-xs text-muted-foreground font-medium">Bereich</label>
           <div className="mt-1 grid grid-cols-2 gap-2">
-            {orgs.map(o => {
-              const m = getOrgMeta(o.short_name);
+            {orgs.map(short => {
+              const m = getOrgMeta(short);
               return (
-                <button key={o.id} onClick={() => setOrganization(o.short_name)}
+                <button key={short} onClick={() => setOrganization(short)}
                   className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition-all ${
-                    organization === o.short_name ? `${m.chip} border-current` : 'border-border text-muted-foreground hover:bg-secondary'
+                    organization === short ? `${m.chip} border-current` : 'border-border text-muted-foreground hover:bg-secondary'
                   }`}>
                   <span>{m.emoji}</span> {m.short}
                 </button>
               );
             })}
           </div>
+          {orgs.length === 0 && <p className="text-xs text-muted-foreground mt-1">Keine sichtbaren Bereiche.</p>}
         </div>
 
         <div className="flex items-center gap-2 p-2.5 border border-dashed border-border rounded-xl text-xs text-muted-foreground">

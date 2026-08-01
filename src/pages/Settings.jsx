@@ -52,7 +52,7 @@ export default function Settings() {
 
       {/* Version */}
       <div className="text-center text-xs text-muted-foreground/50 mt-8">
-        BackOffice OS · MVP v1.0
+        Projekt Atlas · v0.1
       </div>
     </div>
   );

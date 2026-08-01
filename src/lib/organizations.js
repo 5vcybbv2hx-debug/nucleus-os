@@ -13,12 +13,19 @@ export function getOrgMeta(shortName) {
   return ORG_META[shortName] || { short: shortName || '?', label: shortName || '—', emoji: '📌', text: 'text-muted-foreground', chip: 'bg-secondary border-border text-muted-foreground', dot: 'bg-muted-foreground', bar: 'bg-muted-foreground' };
 }
 
-// Status → deutsches Label
+// Einheitliche Statuswerte (neue Komponenten verwenden NUR diese)
+export const ACTIVE_STATUSES = [
+  'Eingang', 'Geplant', 'In Bearbeitung', 'Teilweise erledigt',
+  'Wartet auf Antwort', 'Delegiert', 'Blockiert', 'Zur Prüfung',
+  'Erledigt', 'Nicht mehr notwendig', 'Archiviert',
+];
+
+// Status → deutsches Label (Legacy-Werte bleiben abgebildet, werden in neuen Komponenten nicht gesetzt)
 export const TASK_STATUS_LABELS = {
   Eingang: 'Eingang', Geplant: 'Geplant', 'In Bearbeitung': 'In Bearbeitung',
   'Teilweise erledigt': 'Teilweise erledigt', 'Wartet auf Antwort': 'Wartet auf Antwort',
   Delegiert: 'Delegiert', Blockiert: 'Blockiert', 'Zur Prüfung': 'Zur Prüfung',
-  Erledigt: 'Erledigt', 'Nicht mehr notwendig': 'Nicht mehr notwendig',
+  Erledigt: 'Erledigt', 'Nicht mehr notwendig': 'Nicht mehr notwendig', Archiviert: 'Archiviert',
   offen: 'Offen', in_bearbeitung: 'In Bearbeitung', erledigt: 'Erledigt',
 };
 
@@ -26,13 +33,19 @@ export const DAY_MODES = ['Viel Energie', 'Normal', 'Müde', 'Chaotischer Tag', 
 
 export const WORK_TYPES = ['Verwaltung', 'Finanzen', 'Kreativ', 'Kommunikation', 'Operativ', 'Handwerklich', 'Familie', 'Persönlich'];
 
-// Priorität berechnen — nachvollziehbarer Score
+// Hilfsfunktion: Fälligkeitsdatum (neues Feld due_date, Legacy-Fallback dueDate)
+export function getDueDate(task) {
+  return task.due_date || task.dueDate || null;
+}
+
+// Priorität berechnen — nachvollziehbarer Score (neue Feldnamen)
 export function calculatePriority(task) {
   let score = 0;
-  if (task.dueDate) {
-    const due = new Date(task.dueDate);
+  const due = getDueDate(task);
+  if (due) {
+    const d = new Date(due);
     const today = new Date(); today.setHours(0,0,0,0);
-    const days = Math.ceil((due - today) / 86400000);
+    const days = Math.ceil((d - today) / 86400000);
     if (days <= 0) score += 100;
     else if (days <= 1) score += 80;
     else if (days <= 3) score += 60;
@@ -43,7 +56,7 @@ export function calculatePriority(task) {
     score += 5;
   }
   const mp = { hoch: 30, mittel: 15, niedrig: 5 };
-  score += mp[task.manual_priority || task.priority] || 10;
+  score += mp[task.manual_priority] || 10;
   score += Math.min((task.shift_count || 0) * 3, 15);
   if (task.status === 'Blockiert') score += 10;
   if (task.status === 'Wartet auf Antwort') score += 5;
