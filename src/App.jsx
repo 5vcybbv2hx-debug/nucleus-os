@@ -16,6 +16,11 @@ import Settings from '@/pages/Settings';
 import Vehicles from '@/pages/Vehicles';
 import CashBook from '@/pages/CashBook';
 import Assistant from '@/pages/Assistant';
+import Heute from '@/pages/Heute';
+import Eingang from '@/pages/Eingang';
+import Mehr from '@/pages/Mehr';
+import Plan from '@/pages/Plan';
+import Administration from '@/pages/Administration';
 
 // Layout
 import AppLayout from '@/components/layout/AppLayout';
@@ -46,7 +51,11 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route element={<AppLayout />}>
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/" element={<Heute />} />
+        <Route path="/eingang" element={<Eingang />} />
+        <Route path="/plan" element={<Plan />} />
+        <Route path="/mehr" element={<Mehr />} />
+        <Route path="/administration" element={<Administration />} />
         <Route path="/dokumente" element={<Documents />} />
         <Route path="/dokumente/:id" element={<DocumentDetail />} />
         <Route path="/finanzen" element={<Finance />} />
@@ -57,6 +66,7 @@ const AuthenticatedApp = () => {
         <Route path="/fahrzeuge" element={<Vehicles />} />
         <Route path="/kassenbuch" element={<CashBook />} />
         <Route path="/assistent" element={<Assistant />} />
+        <Route path="/dashboard" element={<Dashboard />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
