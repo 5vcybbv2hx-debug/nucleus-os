@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Shield, Plus, Archive, RotateCcw, Building2, Users, KeyRound, Loader2 } from 'lucide-react';
+import { Shield, Plus, Archive, RotateCcw, Building2, Users, KeyRound, Link2, Loader2 } from 'lucide-react';
 import { getOrgMeta } from '@/lib/organizations';
 import { usePermissions } from '@/lib/usePermissions';
+import IntegrationPanel from '@/components/atlas/IntegrationPanel';
 import { logAudit } from '@/lib/audit';
 
 const ORG_TYPES = ['betrieb', 'buero', 'privat', 'familie', 'executive', 'investment'];
@@ -102,6 +103,7 @@ export default function Administration() {
           { k: 'orgs', label: 'Bereiche', icon: Building2 },
           { k: 'roles', label: 'Rollen', icon: Users },
           { k: 'perms', label: 'Berechtigungen', icon: KeyRound },
+          { k: 'integration', label: 'Integration', icon: Link2 },
         ].map(t => {
           const Icon = t.icon;
           return (
@@ -217,6 +219,8 @@ export default function Administration() {
             </button>
           </div>
         </div>
+      ) : tab === 'integration' ? (
+        <IntegrationPanel />
       ) : (
         <div>
           {permissions.length === 0 ? (

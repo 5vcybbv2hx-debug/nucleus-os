@@ -109,3 +109,26 @@ export const FINANCE_CATEGORIES = [
   'Fahrzeugkosten', 'Steuer / Abgaben', 'Kredite / Leasing', 'Instandhaltung',
   'Büromaterial', 'Reinigung', 'Sonstiges'
 ];
+
+// ============================================================================
+// BAR INTEGRATION (Projekt Atlas ↔ SAVO Bar-App)
+// ============================================================================
+
+export const INTEGRATION_MODES = {
+  READ_ONLY: 'read_only',
+  MOCK: 'mock',
+  DISABLED: 'disabled',
+  STALE: 'stale',
+};
+
+export const INSIGHT_TYPES = {
+  EVENT: 'event',
+  STAFFING: 'staffing',
+  TASK: 'task',
+  RESERVATION: 'reservation',
+  WARNING: 'warning',
+};
+
+export const SEVERITY_ORDER = {
+  critical: 0, high: 1, medium: 2, warning: 3, info: 4,
+};

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import TaskCard from '@/components/atlas/TaskCard';
 import TaskCompleteModal from '@/components/atlas/TaskCompleteModal';
+import BarHeute from '@/components/atlas/BarHeute';
 import { DAY_MODES, calculatePriority, getOrgMeta, getDueDate } from '@/lib/organizations';
 import { usePermissions } from '@/lib/usePermissions';
 
@@ -231,6 +232,8 @@ export default function Heute() {
           </div>
         )}
       </section>
+
+      {perms.isPierre && <BarHeute />}
 
       {unclear.length > 0 && (
         <section className="mb-6">
