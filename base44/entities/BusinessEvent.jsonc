@@ -1,0 +1,22 @@
+{
+  "name": "BusinessEvent",
+  "description": "Zentrale fachliche Ereignisse — das Nervensystem des Unternehmens",
+  "type": "object",
+  "properties": {
+    "event_type_key": {"type": "string", "description": "Referenz auf EventType.key"},
+    "source_system": {"type": "string", "enum": ["SAVO", "SANDRA", "OUTLOOK", "OCR", "DATEV", "SEVDESK", "NAS", "BANK", "APPLE_CALENDAR", "MANUAL", "SYSTEM"]},
+    "source_entity_id": {"type": "string"},
+    "source_entity_type": {"type": "string"},
+    "organization": {"type": "string"},
+    "severity": {"type": "string", "enum": ["info", "normal", "wichtig", "kritisch"], "default": "normal"},
+    "title": {"type": "string"},
+    "description": {"type": "string"},
+    "occurred_at": {"type": "string", "format": "date-time"},
+    "metadata": {"type": "object"},
+    "correlation_id": {"type": "string"},
+    "visibility": {"type": "string", "enum": ["Team", "Beteiligte", "Nur Pierre", "Privat", "Vertraulich"], "default": "Team"},
+    "is_archived": {"type": "boolean", "default": false},
+    "archived_at": {"type": "string", "format": "date-time"}
+  },
+  "required": ["event_type_key", "source_system", "organization", "severity", "title", "occurred_at"]
+}

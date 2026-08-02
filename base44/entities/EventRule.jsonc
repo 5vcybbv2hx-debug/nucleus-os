@@ -1,0 +1,16 @@
+{
+  "name": "EventRule",
+  "description": "Regelwerk — definiert was passiert bei einem Event (alle inaktiv in 3A)",
+  "type": "object",
+  "properties": {
+    "name": {"type": "string"},
+    "event_type_key": {"type": "string"},
+    "condition": {"type": "object"},
+    "action_type": {"type": "string", "enum": ["create_task", "notify", "change_priority", "start_document_process", "start_finance_process"]},
+    "action_config": {"type": "object"},
+    "organization": {"type": "string"},
+    "priority": {"type": "number", "default": 0},
+    "active": {"type": "boolean", "default": false}
+  },
+  "required": ["name", "event_type_key", "action_type"]
+}

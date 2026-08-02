@@ -1,0 +1,14 @@
+{
+  "name": "EventSubscription",
+  "description": "Wer will über welche Events informiert werden (Datenmodell only in 3A)",
+  "type": "object",
+  "properties": {
+    "user_reference": {"type": "string"},
+    "event_type_key": {"type": "string"},
+    "organization": {"type": "string"},
+    "min_severity": {"type": "string", "enum": ["info", "normal", "wichtig", "kritisch"], "default": "info"},
+    "channel": {"type": "string", "enum": ["in_app", "email", "whatsapp"], "default": "in_app"},
+    "active": {"type": "boolean", "default": true}
+  },
+  "required": ["user_reference"]
+}
