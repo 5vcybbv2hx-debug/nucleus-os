@@ -1,0 +1,19 @@
+{
+  "schema": {
+    "properties": {
+      "atlas_entity_id": { "type": "string", "description": "Entity-ID in Atlas" },
+      "atlas_entity_type": { "type": "string", "description": "Entity-Typ in Atlas" },
+      "external_entity_id": { "type": "string", "description": "Entity-ID im externen System" },
+      "external_entity_type": { "type": "string", "description": "Entity-Typ im externen System" },
+      "owner_system": { "type": "string", "description": "Welches System ist führend" },
+      "source_system": { "type": "string", "description": "Quellsystem" },
+      "sync_status": { "type": "string", "enum": ["synced", "pending", "error", "stale"], "description": "Synchronisationsstatus" },
+      "last_synced_at": { "type": "string", "format": "date-time", "description": "Letzte Synchronisation" },
+      "external_updated_at": { "type": "string", "format": "date-time", "description": "Letzte Änderung im externen System" },
+      "metadata": { "type": "object", "description": "Zusätzliche Metadaten" }
+    },
+    "type": "object"
+  },
+  "entity_name": "ExternalReference",
+  "description": "Querverweise zwischen Atlas-Entitäten und externen Systemen"
+}

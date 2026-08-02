@@ -1,0 +1,21 @@
+{
+  "schema": {
+    "properties": {
+      "connection": { "type": "string", "description": "Verweis auf IntegrationConnection" },
+      "source_app": { "type": "string", "description": "Quell-App-ID" },
+      "event_type": { "type": "string", "description": "Event-Typ (sync, sync_success, sync_error)" },
+      "external_entity_id": { "type": "string", "description": "Externe Entity-ID" },
+      "external_entity_type": { "type": "string", "description": "Externer Entity-Typ" },
+      "processing_status": { "type": "string", "enum": ["pending", "success", "failed", "completed"], "description": "Verarbeitungsstatus" },
+      "error": { "type": "string", "description": "Legacy: Fehlerbeschreibung" },
+      "error_message": { "type": "string", "description": "Fehlermeldung" },
+      "result": { "type": "string", "description": "Ergebnis/Zusammenfassung" },
+      "received_at": { "type": "string", "format": "date-time", "description": "Empfangszeit" },
+      "related_atlas_entity": { "type": "string", "description": "Betroffene Atlas-Entity" },
+      "timestamp": { "type": "string", "format": "date-time", "description": "Event-Zeitstempel" }
+    },
+    "type": "object"
+  },
+  "entity_name": "IntegrationEvent",
+  "description": "Synchronisations-Events der Integrationsschicht"
+}

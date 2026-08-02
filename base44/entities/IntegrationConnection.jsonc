@@ -1,0 +1,23 @@
+{
+  "schema": {
+    "properties": {
+      "name": { "type": "string", "description": "Verbindungsname" },
+      "source_app": { "type": "string", "description": "App-ID der externen Quelle" },
+      "source_system": { "type": "string", "description": "Systemname (z.B. SAVO)" },
+      "target_app": { "type": "string", "description": "Ziel-App-ID (Atlas)" },
+      "organization": { "type": "string", "description": "Zugehörige Organisation" },
+      "connection_mode": { "type": "string", "enum": ["read_only", "mock", "disabled"], "description": "Verbindungsmodus" },
+      "status": { "type": "string", "enum": ["active", "inactive", "error"], "description": "Verbindungsstatus" },
+      "enabled": { "type": "boolean", "description": "Verbindung aktiviert" },
+      "data_scope": { "type": "array", "items": { "type": "string" }, "description": "Erlaubte Datenpfade (lesend)" },
+      "write_scope": { "type": "array", "items": { "type": "string" }, "description": "Erlaubte Schreibzugriffe" },
+      "last_sync_at": { "type": "string", "format": "date-time", "description": "Letzte Synchronisation" },
+      "last_success_at": { "type": "string", "format": "date-time", "description": "Letzter erfolgreicher Sync" },
+      "last_error": { "type": "string", "description": "Letzter Fehler" },
+      "configuration": { "type": "object", "description": "Verbindungskonfiguration" }
+    },
+    "type": "object"
+  },
+  "entity_name": "IntegrationConnection",
+  "description": "Integration-Verbindungen zu externen Apps (z.B. SAVO Bar-App)"
+}
