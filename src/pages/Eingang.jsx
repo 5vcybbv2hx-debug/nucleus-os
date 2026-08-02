@@ -14,12 +14,17 @@ export default function Eingang() {
 
   const load = async () => {
     setLoading(true);
-    const [t, i] = await Promise.all([
-      base44.entities.Task.list(),
-      base44.entities.Idea.list(),
-    ]);
-    setTasks(t);
-    setIdeas(i);
+    try {
+      const [taskRes, ideas] = await Promise.all([
+        base44.functions.invoke('secureTasks', { action: 'list' }),
+        base44.entities.Idea.list(),
+      ]);
+      setTasks(taskRes.data?.tasks || taskRes.tasks || []);
+      setIdeas(ideas);
+    } catch {
+      setTasks([]);
+      setIdeas([]);
+    }
     setLoading(false);
   };
 
