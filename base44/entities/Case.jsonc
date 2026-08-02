@@ -1,0 +1,88 @@
+{
+  "name": "Case",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Titel des Vorgangs"
+    },
+    "description": {
+      "type": "string",
+      "description": "Kurzbeschreibung"
+    },
+    "case_type_key": {
+      "type": "string",
+      "description": "Referenz auf CaseType.key"
+    },
+    "organization": {
+      "type": "string",
+      "description": "Referenz auf Organization short_name"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Entwurf",
+        "Aktiv",
+        "Wartet",
+        "Blockiert",
+        "Abgeschlossen",
+        "Archiviert"
+      ],
+      "default": "Entwurf"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "hoch",
+        "mittel",
+        "niedrig"
+      ],
+      "default": "mittel"
+    },
+    "owner": {
+      "type": "string",
+      "description": "Zust\u00e4ndige Person (User ID oder Name)"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "Team",
+        "Beteiligte",
+        "Nur Pierre",
+        "Privat",
+        "Vertraulich"
+      ],
+      "default": "Team"
+    },
+    "business_value": {
+      "type": "string",
+      "description": "Gesch\u00e4tzter Gesch\u00e4ftswert (Text)"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "niedrig",
+        "mittel",
+        "hoch"
+      ],
+      "default": "niedrig"
+    },
+    "parent_case": {
+      "type": "string",
+      "description": "Referenz auf \u00fcbergeordneten Case ID"
+    },
+    "is_archived": {
+      "type": "boolean",
+      "default": false
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "title",
+    "case_type_key",
+    "organization"
+  ]
+}

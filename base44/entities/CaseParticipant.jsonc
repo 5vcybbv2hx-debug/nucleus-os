@@ -1,0 +1,36 @@
+{
+  "name": "CaseParticipant",
+  "type": "object",
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "Referenz auf Case ID"
+    },
+    "user_reference": {
+      "type": "string",
+      "description": "Benutzer-ID oder Name"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "owner",
+        "contributor",
+        "observer",
+        "approver"
+      ],
+      "default": "contributor"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "joined_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "case_id",
+    "user_reference"
+  ]
+}

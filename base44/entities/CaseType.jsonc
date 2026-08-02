@@ -1,0 +1,52 @@
+{
+  "name": "CaseType",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Eindeutiger Key, z.B. projekt, auftrag"
+    },
+    "name": {
+      "type": "string",
+      "description": "Anzeigename"
+    },
+    "description": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Emoji"
+    },
+    "default_status": {
+      "type": "string",
+      "enum": [
+        "Entwurf",
+        "Aktiv"
+      ],
+      "default": "Entwurf"
+    },
+    "default_visibility": {
+      "type": "string",
+      "enum": [
+        "Team",
+        "Beteiligte",
+        "Nur Pierre",
+        "Privat",
+        "Vertraulich"
+      ],
+      "default": "Team"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "key",
+    "name"
+  ]
+}

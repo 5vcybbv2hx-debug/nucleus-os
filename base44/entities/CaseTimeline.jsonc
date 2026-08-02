@@ -1,0 +1,54 @@
+{
+  "name": "CaseTimeline",
+  "type": "object",
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "Referenz auf Case ID"
+    },
+    "entry_type": {
+      "type": "string",
+      "enum": [
+        "business_event",
+        "task",
+        "decision",
+        "note",
+        "comment",
+        "status_change",
+        "document",
+        "calendar",
+        "idea"
+      ],
+      "description": "Art des Eintrags"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titel des Eintrags"
+    },
+    "description": {
+      "type": "string",
+      "description": "Inhalt/Beschreibung"
+    },
+    "source_entity_id": {
+      "type": "string",
+      "description": "ID der Quell-Entity (BusinessEvent ID, Task ID, etc.)"
+    },
+    "source_entity_type": {
+      "type": "string",
+      "description": "Typ der Quell-Entity"
+    },
+    "source_system": {
+      "type": "string",
+      "description": "MANUAL, SAVO, SANDRA, etc."
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Zus\u00e4tzliche Daten als JSON"
+    }
+  },
+  "required": [
+    "case_id",
+    "entry_type",
+    "title"
+  ]
+}

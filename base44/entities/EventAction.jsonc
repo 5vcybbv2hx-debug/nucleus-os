@@ -1,19 +1,5 @@
 {
   "name": "EventAction",
-<<<<<<< HEAD
-  "description": "Aktionen die eine Regel auslöst — eine Rule kann mehrere Actions haben",
-  "type": "object",
-  "properties": {
-    "rule_id": {"type": "string"},
-    "action_type": {"type": "string", "enum": ["create_task", "notify", "change_priority", "start_document_process", "start_finance_process"]},
-    "target_entity": {"type": "string"},
-    "target_config": {"type": "object"},
-    "sequence": {"type": "number", "default": 0},
-    "active": {"type": "boolean", "default": false}
-  },
-  "required": ["rule_id", "action_type"]
-}
-=======
   "type": "object",
   "properties": {
     "rule_id": {
@@ -53,4 +39,3 @@
     "action_type"
   ]
 }
->>>>>>> 8aad3cee85ffcb60622c53f62ea8d80bb4b6800b
