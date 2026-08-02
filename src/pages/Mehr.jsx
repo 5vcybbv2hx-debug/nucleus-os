@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, Car, FileText, Wallet, Bot, Server, Shield, Sparkles, FolderKanban, BookOpen as Book, Target, History, Building2, ChevronRight, Zap } from 'lucide-react';
+import { BookOpen, Car, FileText, Wallet, Bot, Server, Shield, Sparkles, FolderKanban, BookOpen as Book, Target, History, Building2, ChevronRight, Zap, FolderArchive, Settings2 } from 'lucide-react';
 
 const LEGACY = [
   { to: '/kassenbuch', label: 'Kassenbuch', icon: BookOpen },
@@ -11,7 +11,6 @@ const LEGACY = [
 ];
 
 const PLACEHOLDERS = [
-  { label: 'Vorgänge', icon: FolderKanban },
   { label: 'Wissen', icon: Book },
   { label: 'Ziele', icon: Target },
   { label: 'Historie', icon: History },
@@ -56,6 +55,32 @@ export default function Mehr() {
           </div>
           <ChevronRight size={18} className="text-muted-foreground" />
         </Link>
+      </section>
+
+      {/* Vorgänge + Case Engine */}
+      <section className="mb-6">
+        <div className="space-y-2">
+          <Link to="/cases" className="flex items-center gap-3 p-4 bg-card border border-border rounded-2xl hover:bg-secondary/40 transition-colors">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+              <FolderArchive size={20} className="text-primary" />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-semibold">Vorgänge</div>
+              <div className="text-xs text-muted-foreground">Cases · Vorgangs-Cockpits</div>
+            </div>
+            <ChevronRight size={18} className="text-muted-foreground" />
+          </Link>
+          <Link to="/case-engine" className="flex items-center gap-3 p-3.5 bg-card border border-border rounded-2xl hover:bg-secondary/40 transition-colors">
+            <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
+              <Settings2 size={17} className="text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <div className="text-sm font-medium">Case Engine</div>
+              <div className="text-xs text-muted-foreground">Verwaltung der Vorgangs-Engine</div>
+            </div>
+            <ChevronRight size={16} className="text-muted-foreground flex-shrink-0" />
+          </Link>
+        </div>
       </section>
 
       {/* Legacy */}

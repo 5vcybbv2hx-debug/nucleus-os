@@ -23,6 +23,9 @@ import Plan from '@/pages/Plan';
 import Aufgaben from '@/pages/Aufgaben';
 import Administration from '@/pages/Administration';
 import EventEngine from '@/pages/EventEngine';
+import Cases from '@/pages/Cases';
+import CaseDetail from '@/pages/CaseDetail';
+import CaseEngine from '@/pages/CaseEngine';
 
 // Layout
 import AppLayout from '@/components/layout/AppLayout';
@@ -60,6 +63,9 @@ const AuthenticatedApp = () => {
         <Route path="/mehr" element={<Mehr />} />
         <Route path="/administration" element={<Administration />} />
         <Route path="/event-engine" element={<EventEngine />} />
+      <Route path="/cases" element={<Cases />} />
+      <Route path="/cases/:id" element={<CaseDetail />} />
+      <Route path="/case-engine" element={<CaseEngine />} />
         <Route path="/dokumente" element={<Documents />} />
         <Route path="/dokumente/:id" element={<DocumentDetail />} />
         <Route path="/finanzen" element={<Finance />} />
