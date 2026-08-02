@@ -1,0 +1,13 @@
+{
+  "name": "CaseParticipant",
+  "description": "Beteiligte pro Vorgang",
+  "type": "object",
+  "properties": {
+    "case_id": {"type": "string"},
+    "user_reference": {"type": "string"},
+    "role": {"type": "string", "enum": ["owner", "contributor", "observer", "approver"], "default": "contributor"},
+    "active": {"type": "boolean", "default": true},
+    "joined_at": {"type": "string", "format": "date-time"}
+  },
+  "required": ["case_id", "user_reference"]
+}
