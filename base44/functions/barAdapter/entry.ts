@@ -8,8 +8,7 @@ const CONNECTION_ID = '6a6e7b2d469d2c9496225c8b';
 const STALE_THRESHOLD_HOURS = 2;
 
 const MOCK_INSIGHTS = [
-  { type: 'staffing', title: 'Mock: 3 Mitarbeiter aktiv', summary: 'Testdaten — nicht live', severity: 'info', effectiveDate: new Date().toISOString().slice(0, 10), externalId: 'mock_staffing' },
-  { type: 'task', title: 'Mock: 10 offene Aufgaben', summary: 'Testdaten — nicht live', severity: 'info', effectiveDate: new Date().toISOString().slice(0, 10), externalId: 'mock_tasks' },
+  { type: 'staffing', title: 'Verbindung wird aufgebaut…', summary: 'Daten werden geladen', severity: 'info', effectiveDate: new Date().toISOString().slice(0, 10), externalId: 'mock_loading' },
 ];
 
 export default async function(req) {
@@ -29,11 +28,11 @@ export default async function(req) {
       return await getBarSnapshot(base44);
     }
   } catch (error) {
-    console.error('[barAdapter] Error:', error);
+    console.error('[barAdapter V2.4] Error:', error);
     return Response.json({ 
-      mode: 'mock', 
-      snapshot: { source: 'SAVO', mode: 'mock', stale: true, insights: MOCK_INSIGHTS }, 
-      error: error.message 
+      mode: 'stale', 
+      snapshot: { source: 'SAVO', mode: 'stale', stale: true, insights: MOCK_INSIGHTS }, 
+      error: error?.message || 'Unbekannter Fehler' 
     });
   }
 }
@@ -67,30 +66,29 @@ async function getBarSnapshot(base44) {
     });
   }
 
-  const allInsights = await base44.entities.ExternalInsight.filter({ organization: 'BAR', status: 'active' });
-  const insights = (allInsights || []).sort((a, b) => 
-    new Date(b.last_synced_at || 0).getTime() - new Date(a.last_synced_at || 0).getTime()
-  ).slice(0, 50);
+  const insights = await base44.entities.ExternalInsight.filter({ organization: 'BAR', status: 'active' });
 
   const lastSync = conn.last_success_at || conn.last_sync_at;
-  let isStale = false;
+  let isStale = !lastSync;
   if (lastSync) {
     const diffMs = Date.now() - new Date(lastSync).getTime();
     isStale = diffMs > STALE_THRESHOLD_HOURS * 60 * 60 * 1000;
-  } else {
-    isStale = true;
   }
 
   const mode = conn.connection_mode === 'mock' ? 'mock' : (isStale ? 'stale' : 'read_only');
 
-  const formattedInsights = insights.map(ins => ({
-    type: ins.type,
+  const formattedInsights = (insights || []).map(ins => ({
+    type: ins.insight_type || ins.type,
     title: ins.title,
     summary: ins.summary,
     severity: ins.severity || 'info',
     effectiveDate: ins.effective_date,
     externalId: ins.external_reference,
-  }));
+    organization: ins.organization,
+  })).sort((a, b) => {
+    const order = { critical: 0, high: 1, warning: 2, info: 3 };
+    return (order[a.severity] ?? 9) - (order[b.severity] ?? 9);
+  });
 
   return Response.json({
     mode,
