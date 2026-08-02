@@ -4,13 +4,15 @@ import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import {
   Sunrise, Battery, Zap as ZapIcon, ListChecks, AlertTriangle, Clock, HelpCircle,
-  Wallet, Sparkles, TrendingUp, CalendarClock, CheckSquare, UserCheck, ClipboardCheck,
+  Wallet, Sparkles, TrendingUp, CalendarClock, CheckSquare, UserCheck, ClipboardCheck, CheckCircle,
 } from 'lucide-react';
 import TaskCard from '@/components/atlas/TaskCard';
 import TaskCompleteModal from '@/components/atlas/TaskCompleteModal';
 import BarHeute from '@/components/atlas/BarHeute';
 import { DAY_MODES, calculatePriority, getOrgMeta, getDueDate } from '@/lib/organizations';
 import { usePermissions } from '@/lib/usePermissions';
+import { logAudit } from '@/lib/audit';
+import { Link } from 'react-router-dom';
 
 const GREETINGS = [
   { h: [5,6,7,8,9,10], label: 'Guten Morgen', icon: Sunrise },
@@ -30,6 +32,8 @@ export default function Heute() {
   const [availableTime, setAvailableTime] = useState(8);
   const [dailyPlanId, setDailyPlanId] = useState(null);
   const [completeTask, setCompleteTask] = useState(null);
+  const [planItems, setPlanItems] = useState([]);
+  const [financeInsights, setFinanceInsights] = useState([]);
 
   // Aufgaben über secure Backend (visibility serverseitig gefiltert)
   const loadTasks = useCallback(async () => {
@@ -70,6 +74,33 @@ export default function Heute() {
     if (perms.user && perms.role !== 'buero') ensureDailyPlan();
   }, [perms.user, perms.role, ensureDailyPlan]);
 
+  // DailyPlanItems für heutige Termine (nur administrator/vertretung)
+  useEffect(() => {
+    if (!dailyPlanId) { setPlanItems([]); return; }
+    let alive = true;
+    (async () => {
+      try {
+        const items = await base44.entities.DailyPlanItem.filter({ daily_plan: dailyPlanId });
+        if (alive) setPlanItems(items.sort((a, b) => (a.suggested_start || '99:99').localeCompare(b.suggested_start || '99:99')));
+      } catch { if (alive) setPlanItems([]); }
+    })();
+    return () => { alive = false; };
+  }, [dailyPlanId]);
+
+  // Finanz-Insights (nicht-BAR) via barAdapter (nur administrator)
+  useEffect(() => {
+    if (perms.role === 'vertretung') return;
+    let alive = true;
+    (async () => {
+      try {
+        const res = await base44.functions.invoke('barAdapter', { action: 'getBarSnapshot' });
+        if (!alive) return;
+        setFinanceInsights((res.data?.snapshot?.insights || res.snapshot?.insights || []).filter(i => i.organization && i.organization !== 'BAR'));
+      } catch { if (alive) setFinanceInsights([]); }
+    })();
+    return () => { alive = false; };
+  }, [perms.role]);
+
   const updateDayMode = async (mode) => {
     setDayMode(mode);
     if (!dailyPlanId) return;
@@ -96,6 +127,16 @@ export default function Heute() {
       .filter(t => !t.isArchived && t.status !== 'Archiviert' && perms.canViewTask(t))
       .map(t => ({ ...t, calculated_priority: t.calculated_priority ?? calculatePriority(t) }));
   }, [tasks, perms]);
+
+  const taskById = useMemo(() => Object.fromEntries(tasks.map(t => [t.id, t])), [tasks]);
+  const decisions = visibleTasks.filter(t => t.status === 'Zur Prüfung').slice(0, 4);
+
+  const handleCheckDecision = async (task) => {
+    const prev = { status: task.status };
+    await base44.entities.Task.update(task.id, { status: 'In Bearbeitung' });
+    await logAudit({ action: 'status_change', entityType: 'Task', entityId: task.id, previousValue: prev, newValue: { status: 'In Bearbeitung' } });
+    loadTasks();
+  };
 
   const isBuero = perms.role === 'buero';
 
@@ -256,20 +297,75 @@ export default function Heute() {
 
       <section className="mb-6">
         <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><CalendarClock size={16} /> Heutige Termine</h2>
-        <p className="text-xs text-muted-foreground/60 p-3 border border-dashed border-border rounded-xl">Terminkalender folgt in einem nächsten Paket.</p>
+        {planItems.length === 0 ? (
+          <div className="p-3 border border-dashed border-border rounded-xl text-xs text-muted-foreground/60 text-center">
+            Keine Termine heute. <Link to="/plan" className="text-primary hover:underline">Gehe zur Planung</Link> um deinen Tag zu strukturieren.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {planItems.slice(0, 5).map(item => {
+              const task = taskById[item.task];
+              const org = task ? getOrgMeta(task.organization) : null;
+              return (
+                <div key={item.id} className="p-3 bg-card border border-border rounded-xl flex items-center gap-3">
+                  <span className="text-xs font-semibold text-primary w-12 flex-shrink-0">{item.suggested_start || '—'}</span>
+                  <span className="text-sm flex-1 truncate">{task?.title || 'Aufgabe'}</span>
+                  {org && <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] flex-shrink-0 ${org.chip}`}><span>{org.emoji}</span>{org.short}</span>}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* Finanzhinweise: nur für administrator (keine vertraulichen Inhalte für Vertretung) */}
       {!isVertretung && (
         <section className="mb-6">
           <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Wallet size={16} /> Finanzhinweise</h2>
-          <p className="text-xs text-muted-foreground/60 p-3 border border-dashed border-border rounded-xl">Kompakte Finanzübersicht folgt.</p>
+          {financeInsights.length > 0 ? (
+            <div className="space-y-2">
+              {financeInsights.map((ins, i) => {
+                const org = getOrgMeta(ins.organization);
+                return (
+                  <div key={ins.externalId || i} className="p-3 bg-card border border-border rounded-xl">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] ${org.chip}`}><span>{org.emoji}</span>{org.short}</span>
+                    </div>
+                    <div className="text-sm font-medium">{ins.title}</div>
+                    {ins.summary && <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{ins.summary}</div>}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="p-3 bg-card border border-border rounded-xl">
+              <p className="text-xs text-muted-foreground">Detaillierte Finanzübersicht in der Finanz-Sektion.</p>
+              <Link to="/finanzen" className="text-sm text-primary hover:underline mt-2 inline-flex items-center gap-1">Finanzübersicht öffnen →</Link>
+            </div>
+          )}
         </section>
       )}
 
       <section className="mb-6">
         <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><ListChecks size={16} /> Offene Entscheidungen</h2>
-        <p className="text-xs text-muted-foreground/60 p-3 border border-dashed border-border rounded-xl">Noch keine offenen Entscheidungen.</p>
+        {decisions.length === 0 ? (
+          <div className="p-3 border border-dashed border-border rounded-xl text-xs text-muted-foreground/60 flex items-center gap-2">
+            <CheckCircle size={14} className="text-green-400 flex-shrink-0" /> Keine offenen Entscheidungen — alles klar.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {decisions.map(t => {
+              const org = getOrgMeta(t.organization);
+              return (
+                <div key={t.id} className="p-3 bg-card border border-border rounded-xl flex items-center gap-3">
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] flex-shrink-0 ${org.chip}`}><span>{org.emoji}</span>{org.short}</span>
+                  <span className="text-sm flex-1 truncate">{t.title}</span>
+                  <button onClick={() => handleCheckDecision(t)} className="text-xs px-2.5 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors flex-shrink-0">Prüfen</button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {completeTask && (
