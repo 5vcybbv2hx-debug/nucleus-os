@@ -1,5 +1,6 @@
 {
   "name": "BusinessEvent",
+<<<<<<< HEAD
   "description": "Zentrale fachliche Ereignisse — das Nervensystem des Unternehmens",
   "type": "object",
   "properties": {
@@ -20,3 +21,101 @@
   },
   "required": ["event_type_key", "source_system", "organization", "severity", "title", "occurred_at"]
 }
+=======
+  "type": "object",
+  "properties": {
+    "event_type_key": {
+      "type": "string",
+      "description": "Referenz auf EventType.key"
+    },
+    "source_system": {
+      "type": "string",
+      "enum": [
+        "SAVO",
+        "SANDRA",
+        "OUTLOOK",
+        "OCR",
+        "DATEV",
+        "SEVDESK",
+        "NAS",
+        "BANK",
+        "APPLE_CALENDAR",
+        "MANUAL",
+        "SYSTEM"
+      ],
+      "description": "Woher stammt das Ereignis"
+    },
+    "source_entity_id": {
+      "type": "string",
+      "description": "ID des Ursprungsobjekts im Quellsystem"
+    },
+    "source_entity_type": {
+      "type": "string",
+      "description": "Typ des Ursprungsobjekts"
+    },
+    "organization": {
+      "type": "string",
+      "description": "Referenz auf Organization short_name"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "normal",
+        "wichtig",
+        "kritisch"
+      ],
+      "default": "normal"
+    },
+    "title": {
+      "type": "string",
+      "description": "Lesbarer Titel"
+    },
+    "description": {
+      "type": "string",
+      "description": "Beschreibung des Ereignisses"
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Wann ist es passiert"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Zus\u00e4tzliche fachliche Daten als JSON"
+    },
+    "correlation_id": {
+      "type": "string",
+      "description": "Optionale ID zum Verkn\u00fcpfen verwandter Events"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "Team",
+        "Beteiligte",
+        "Nur Pierre",
+        "Privat",
+        "Vertraulich"
+      ],
+      "default": "Team"
+    },
+    "is_archived": {
+      "type": "boolean",
+      "default": false,
+      "description": "Archiviert statt gel\u00f6scht"
+    },
+    "archived_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "event_type_key",
+    "source_system",
+    "organization",
+    "severity",
+    "title",
+    "occurred_at"
+  ]
+}
+>>>>>>> 8aad3cee85ffcb60622c53f62ea8d80bb4b6800b

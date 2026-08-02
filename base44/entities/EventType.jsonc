@@ -1,5 +1,6 @@
 {
   "name": "EventType",
+<<<<<<< HEAD
   "description": "Registry der Eventtypen — definiert welche Ereignisse existieren",
   "type": "object",
   "properties": {
@@ -16,3 +17,79 @@
   },
   "required": ["key", "name", "category"]
 }
+=======
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Eindeutiger Key, z.B. invoice_received"
+    },
+    "name": {
+      "type": "string",
+      "description": "Anzeigename, z.B. Rechnung erkannt"
+    },
+    "description": {
+      "type": "string",
+      "description": "Was bedeutet dieser Eventtyp"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Dokumente",
+        "Finanzen",
+        "Personal",
+        "Bar",
+        "Sandra",
+        "Executive",
+        "Immobilien",
+        "Kalender",
+        "Privat",
+        "System"
+      ]
+    },
+    "icon": {
+      "type": "string",
+      "description": "Emoji oder Icon-Name"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "normal",
+        "wichtig",
+        "kritisch"
+      ],
+      "default": "normal",
+      "description": "Default-Schweregrad"
+    },
+    "source_system": {
+      "type": "string",
+      "description": "Typisches Quellsystem"
+    },
+    "default_visibility": {
+      "type": "string",
+      "enum": [
+        "Team",
+        "Beteiligte",
+        "Nur Pierre",
+        "Privat",
+        "Vertraulich"
+      ],
+      "default": "Team"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "key",
+    "name",
+    "category"
+  ]
+}
+>>>>>>> 8aad3cee85ffcb60622c53f62ea8d80bb4b6800b

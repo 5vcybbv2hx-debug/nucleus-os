@@ -7,7 +7,6 @@ Deno.serve(async (req) => {
     const action = body?.action || 'getBarSnapshot';
     const STALE_THRESHOLD_MS = 2 * 60 * 60 * 1000;
 
-    // Connection per filter finden (nicht hardcoded ID)
     let connections = await base44.entities.IntegrationConnection.filter({
       source_app: '695532713e60f5ccfc3522b9',
       enabled: true
@@ -38,7 +37,6 @@ Deno.serve(async (req) => {
       }), { headers: { 'Content-Type': 'application/json' } });
     }
 
-    // getBarSnapshot
     const insights = await base44.entities.ExternalInsight.filter({ organization: 'BAR', status: 'active' });
     const validInsights = insights || [];
 

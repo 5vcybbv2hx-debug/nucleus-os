@@ -38,35 +38,26 @@ export default function BarHeute() {
     setLoading(true);
     setError(null);
     try {
-      // Direkt aus ExternalInsight-Entity lesen — kein barAdapter nötig
       const insights = await base44.entities.ExternalInsight.filter({
         organization: 'BAR',
         status: 'active'
       });
-
-      // IntegrationConnection für Sync-Status lesen
       let connection = null;
       try {
         const conns = await base44.entities.IntegrationConnection.filter({
           source_app: '695532713e60f5ccfc3522b9'
         });
         connection = conns?.[0] || null;
-      } catch (e) {
-        // Fallback — Connection ist optional für Anzeige
-      }
+      } catch (e) {}
 
       const validInsights = insights || [];
-
-      // Stale-Prüfung
       const lastSync = connection?.last_success_at || connection?.last_sync_at;
-      const isStale = validInsights.length === 0 || (!lastSync) ||
-        (Date.now() - new Date(lastSync).getTime()) > STALE_THRESHOLD_MS;
+      const isStale = validInsights.length === 0 || !lastSync ||
+        (Date.now() - new Date(lastSync).getTime()) > 7200000;
 
       const mode = connection?.enabled === false ? 'disabled'
-        : isStale ? 'stale'
-        : 'read_only';
+        : isStale ? 'stale' : 'read_only';
 
-      // Insights nach Severity sortieren
       const sortedInsights = validInsights
         .map(i => ({
           type: i.type || i.insight_type,
@@ -76,7 +67,10 @@ export default function BarHeute() {
           effectiveDate: i.effective_date,
           externalId: i.external_reference,
         }))
-        .sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 99) - (SEVERITY_ORDER[b.severity] ?? 99));
+        .sort((a, b) => {
+          const order = { critical: 0, high: 1, warning: 2, info: 3 };
+          return (order[a.severity] ?? 9) - (order[b.severity] ?? 9);
+        });
 
       setData({
         mode,
@@ -86,7 +80,7 @@ export default function BarHeute() {
         isStale,
       });
     } catch (e) {
-      setError(e?.message || 'Verbindung zur Bar-App fehlgeschlagen');
+      setError(e?.message || 'Fehler beim Laden der Bar-Daten');
     }
     setLoading(false);
   };
