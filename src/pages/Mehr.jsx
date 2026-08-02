@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, Car, FileText, Wallet, Bot, Server, Shield, Sparkles, FolderKanban, BookOpen as Book, Target, History, Building2, ChevronRight } from 'lucide-react';
+import { BookOpen, Car, FileText, Wallet, Bot, Server, Shield, Sparkles, FolderKanban, BookOpen as Book, Target, History, Building2, ChevronRight, Zap } from 'lucide-react';
 
 const LEGACY = [
   { to: '/kassenbuch', label: 'Kassenbuch', icon: BookOpen },
@@ -39,6 +39,20 @@ export default function Mehr() {
           <div className="flex-1">
             <div className="text-sm font-semibold">Administration</div>
             <div className="text-xs text-muted-foreground">Organisationseinheiten, Rollen & Berechtigungen</div>
+          </div>
+          <ChevronRight size={18} className="text-muted-foreground" />
+        </Link>
+      </section>
+
+      {/* Event Engine */}
+      <section className="mb-6">
+        <Link to="/event-engine" className="flex items-center gap-3 p-4 bg-card border border-border rounded-2xl hover:bg-secondary/40 transition-colors">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+            <Zap size={20} className="text-primary" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-semibold">Business Event Engine</div>
+            <div className="text-xs text-muted-foreground">Zentrales Ereignis-Protokoll · Regeln & Subscriptions</div>
           </div>
           <ChevronRight size={18} className="text-muted-foreground" />
         </Link>

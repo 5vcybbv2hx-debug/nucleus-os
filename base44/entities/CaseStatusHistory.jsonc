@@ -1,5 +1,6 @@
 {
   "name": "CaseStatusHistory",
+<<<<<<< HEAD
   "description": "Statusübergänge protokolliert (Audit-Trail)",
   "type": "object",
   "properties": {
@@ -11,3 +12,33 @@
   },
   "required": ["case_id", "to_status"]
 }
+=======
+  "type": "object",
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "description": "Referenz auf Case ID"
+    },
+    "from_status": {
+      "type": "string",
+      "description": "Vorheriger Status"
+    },
+    "to_status": {
+      "type": "string",
+      "description": "Neuer Status"
+    },
+    "changed_by": {
+      "type": "string",
+      "description": "Wer hat ge\u00e4ndert"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Grund der \u00c4nderung (optional)"
+    }
+  },
+  "required": [
+    "case_id",
+    "to_status"
+  ]
+}
+>>>>>>> 68c0589a20970f36d9ac65ed3b458258ef412f05

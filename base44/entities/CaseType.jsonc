@@ -1,5 +1,6 @@
 {
   "name": "CaseType",
+<<<<<<< HEAD
   "description": "Registry der Vorgangstypen — 18 initiale Types",
   "type": "object",
   "properties": {
@@ -14,3 +15,55 @@
   },
   "required": ["key", "name"]
 }
+=======
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Eindeutiger Key, z.B. projekt, auftrag"
+    },
+    "name": {
+      "type": "string",
+      "description": "Anzeigename"
+    },
+    "description": {
+      "type": "string"
+    },
+    "icon": {
+      "type": "string",
+      "description": "Emoji"
+    },
+    "default_status": {
+      "type": "string",
+      "enum": [
+        "Entwurf",
+        "Aktiv"
+      ],
+      "default": "Entwurf"
+    },
+    "default_visibility": {
+      "type": "string",
+      "enum": [
+        "Team",
+        "Beteiligte",
+        "Nur Pierre",
+        "Privat",
+        "Vertraulich"
+      ],
+      "default": "Team"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    },
+    "display_order": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "key",
+    "name"
+  ]
+}
+>>>>>>> 68c0589a20970f36d9ac65ed3b458258ef412f05

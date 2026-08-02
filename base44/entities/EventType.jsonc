@@ -1,23 +1,5 @@
 {
   "name": "EventType",
-<<<<<<< HEAD
-  "description": "Registry der Eventtypen — definiert welche Ereignisse existieren",
-  "type": "object",
-  "properties": {
-    "key": {"type": "string", "description": "Eindeutiger Key"},
-    "name": {"type": "string", "description": "Anzeigename"},
-    "description": {"type": "string"},
-    "category": {"type": "string", "enum": ["Dokumente", "Finanzen", "Personal", "Bar", "Sandra", "Executive", "Immobilien", "Kalender", "Privat", "System"]},
-    "icon": {"type": "string"},
-    "severity": {"type": "string", "enum": ["info", "normal", "wichtig", "kritisch"], "default": "normal"},
-    "source_system": {"type": "string"},
-    "default_visibility": {"type": "string", "enum": ["Team", "Beteiligte", "Nur Pierre", "Privat", "Vertraulich"], "default": "Team"},
-    "active": {"type": "boolean", "default": true},
-    "display_order": {"type": "number", "default": 0}
-  },
-  "required": ["key", "name", "category"]
-}
-=======
   "type": "object",
   "properties": {
     "key": {
@@ -92,4 +74,3 @@
     "category"
   ]
 }
->>>>>>> 8aad3cee85ffcb60622c53f62ea8d80bb4b6800b
