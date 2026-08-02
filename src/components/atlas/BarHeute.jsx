@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Beer, AlertTriangle, RefreshCw, ExternalLink, Activity } from 'lucide-react';
-import { SEVERITY_ORDER, INTEGRATION_MODES } from '@/lib/constants';
 
 const BAR_APP_URL = 'https://app.base44.com/apps/695532713e60f5ccfc3522b9/editor/preview';
+const STALE_THRESHOLD_MS = 2 * 60 * 60 * 1000; // 2 Stunden
 
 const MODE_BADGE = {
-  [INTEGRATION_MODES.READ_ONLY]: { label: 'LIVE', cls: 'bg-green-500/15 text-green-400 border-green-500/30' },
-  [INTEGRATION_MODES.STALE]: { label: 'VERALTET', cls: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' },
-  [INTEGRATION_MODES.MOCK]: { label: 'TESTDATEN', cls: 'bg-gray-500/15 text-gray-400 border-gray-500/30' },
-  [INTEGRATION_MODES.DISABLED]: { label: 'DEAKTIVIERT', cls: 'bg-red-500/15 text-red-400 border-red-500/30' },
+  read_only: { label: 'LIVE', cls: 'bg-green-500/15 text-green-400 border-green-500/30' },
+  stale: { label: 'VERALTET', cls: 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30' },
+  mock: { label: 'TESTDATEN', cls: 'bg-gray-500/15 text-gray-400 border-gray-500/30' },
+  disabled: { label: 'DEAKTIVIERT', cls: 'bg-red-500/15 text-red-400 border-red-500/30' },
 };
 
 const SEVERITY_BADGE = {
@@ -19,6 +19,8 @@ const SEVERITY_BADGE = {
   warning: { label: 'Warnung', cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
   info: { label: 'Info', cls: 'bg-blue-500/15 text-blue-400 border-blue-500/30' },
 };
+
+const SEVERITY_ORDER = { critical: 0, high: 1, warning: 2, info: 3 };
 
 const fmtTime = (iso) => {
   if (!iso) return '—';
@@ -36,8 +38,53 @@ export default function BarHeute() {
     setLoading(true);
     setError(null);
     try {
-      const res = await base44.functions.invoke('barAdapter', { action: 'getBarSnapshot' });
-      setData(res.data || res);
+      // Direkt aus ExternalInsight-Entity lesen — kein barAdapter nötig
+      const insights = await base44.entities.ExternalInsight.filter({
+        organization: 'BAR',
+        status: 'active'
+      });
+
+      // IntegrationConnection für Sync-Status lesen
+      let connection = null;
+      try {
+        const conns = await base44.entities.IntegrationConnection.filter({
+          source_app: '695532713e60f5ccfc3522b9'
+        });
+        connection = conns?.[0] || null;
+      } catch (e) {
+        // Fallback — Connection ist optional für Anzeige
+      }
+
+      const validInsights = insights || [];
+
+      // Stale-Prüfung
+      const lastSync = connection?.last_success_at || connection?.last_sync_at;
+      const isStale = validInsights.length === 0 || (!lastSync) ||
+        (Date.now() - new Date(lastSync).getTime()) > STALE_THRESHOLD_MS;
+
+      const mode = connection?.enabled === false ? 'disabled'
+        : isStale ? 'stale'
+        : 'read_only';
+
+      // Insights nach Severity sortieren
+      const sortedInsights = validInsights
+        .map(i => ({
+          type: i.type || i.insight_type,
+          title: i.title,
+          summary: i.summary,
+          severity: i.severity || 'info',
+          effectiveDate: i.effective_date,
+          externalId: i.external_reference,
+        }))
+        .sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 99) - (SEVERITY_ORDER[b.severity] ?? 99));
+
+      setData({
+        mode,
+        insights: sortedInsights,
+        connection: connection || {},
+        lastSync,
+        isStale,
+      });
     } catch (e) {
       setError(e?.message || 'Verbindung zur Bar-App fehlgeschlagen');
     }
@@ -47,17 +94,9 @@ export default function BarHeute() {
   useEffect(() => { load(); }, []);
 
   const mode = data?.mode;
-  const snapshot = data?.snapshot || {};
+  const badge = MODE_BADGE[mode] || MODE_BADGE.mock;
+  const allInsights = data?.insights || [];
   const connection = data?.connection || {};
-  const badge = MODE_BADGE[mode] || MODE_BADGE[INTEGRATION_MODES.MOCK];
-
-  // Alle Insights zusammenführen und nach Severity sortieren
-  const allInsights = [
-    ...(snapshot.insights || []),
-    ...((snapshot.staffing && snapshot.staffing.insights) || []),
-    ...((snapshot.events && snapshot.events.insights) || []),
-    ...((snapshot.reservations && snapshot.reservations.insights) || []),
-  ].sort((a, b) => (SEVERITY_ORDER[a.severity] ?? 99) - (SEVERITY_ORDER[b.severity] ?? 99));
 
   return (
     <section className="mb-6">
@@ -87,14 +126,14 @@ export default function BarHeute() {
           <div className="p-3 bg-card border border-border rounded-2xl flex items-center gap-3">
             <Activity size={15} className="text-primary flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium truncate">{connection.name || 'SAVO Bar-App'} · {connection.source_app || 'BAR'}</div>
-              <div className="text-[11px] text-muted-foreground">Letzte Sync: {fmtTime(connection.last_sync_at || data.lastSync)}</div>
+              <div className="text-xs font-medium truncate">{connection.name || 'SAVO Bar-App'} · BAR</div>
+              <div className="text-[11px] text-muted-foreground">Letzte Sync: {fmtTime(connection.last_sync_at || data?.lastSync)}</div>
             </div>
             <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded text-muted-foreground flex-shrink-0">nur lesend</span>
           </div>
 
           {/* Stale-Warnung */}
-          {mode === INTEGRATION_MODES.STALE && (
+          {mode === 'stale' && (
             <div className="p-2.5 bg-yellow-500/10 border border-yellow-500/20 rounded-xl text-[11px] text-yellow-400 flex items-center gap-2">
               <AlertTriangle size={13} className="flex-shrink-0" />
               Daten möglicherweise veraltet — letzte Aktualisierung: {fmtTime(connection.last_success_at || connection.last_sync_at)}
