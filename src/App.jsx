@@ -22,6 +22,7 @@ import Mehr from '@/pages/Mehr';
 import Plan from '@/pages/Plan';
 import Aufgaben from '@/pages/Aufgaben';
 import Administration from '@/pages/Administration';
+import EventEngine from '@/pages/EventEngine';
 
 // Layout
 import AppLayout from '@/components/layout/AppLayout';
@@ -58,6 +59,7 @@ const AuthenticatedApp = () => {
         <Route path="/aufgaben" element={<Aufgaben />} />
         <Route path="/mehr" element={<Mehr />} />
         <Route path="/administration" element={<Administration />} />
+        <Route path="/event-engine" element={<EventEngine />} />
         <Route path="/dokumente" element={<Documents />} />
         <Route path="/dokumente/:id" element={<DocumentDetail />} />
         <Route path="/finanzen" element={<Finance />} />
