@@ -1,20 +1,60 @@
 {
-  "schema": {
-    "properties": {
-      "title": { "type": "string", "description": "Insight-Titel" },
-      "summary": { "type": "string", "description": "Zusammenfassung" },
-      "type": { "type": "string", "enum": ["event", "staffing", "task", "reservation", "warning"], "description": "Insight-Typ" },
-      "severity": { "type": "string", "enum": ["critical", "high", "medium", "warning", "info"], "description": "Schweregrad" },
-      "organization": { "type": "string", "description": "Zugehörige Organisation" },
-      "source_system": { "type": "string", "description": "Quellsystem (z.B. SAVO)" },
-      "external_reference": { "type": "string", "description": "Externe Referenz-ID für Upsert" },
-      "effective_date": { "type": "string", "format": "date", "description": "Gültig ab" },
-      "valid_until": { "type": "string", "format": "date", "description": "Gültig bis" },
-      "status": { "type": "string", "enum": ["active", "expired", "archived"], "description": "Insight-Status" },
-      "last_synced_at": { "type": "string", "format": "date-time", "description": "Letzte Synchronisation" }
+  "name": "ExternalInsight",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
     },
-    "type": "object"
-  },
-  "entity_name": "ExternalInsight",
-  "description": "Externe Insights aus verbundenen Apps (z.B. SAVO Bar-App)"
+    "summary": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "insight_type": {
+      "type": "string"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "critical",
+        "high",
+        "medium",
+        "warning",
+        "info"
+      ]
+    },
+    "organization": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "archived"
+      ]
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date"
+    },
+    "external_reference": {
+      "type": "string"
+    },
+    "source_system": {
+      "type": "string"
+    },
+    "source_app": {
+      "type": "string"
+    },
+    "last_synced_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
 }
