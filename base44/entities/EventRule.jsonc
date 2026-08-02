@@ -1,0 +1,51 @@
+{
+  "name": "EventRule",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name der Regel"
+    },
+    "event_type_key": {
+      "type": "string",
+      "description": "Welcher EventType triggert diese Regel"
+    },
+    "condition": {
+      "type": "object",
+      "description": "JSON-Bedingung, z.B. {severity: kritisch}"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "create_task",
+        "notify",
+        "change_priority",
+        "start_document_process",
+        "start_finance_process"
+      ],
+      "description": "Was soll passieren (nur Datenmodell, keine Ausf\u00fchrung in 3A)"
+    },
+    "action_config": {
+      "type": "object",
+      "description": "JSON mit Aktionsparametern"
+    },
+    "organization": {
+      "type": "string",
+      "description": "F\u00fcr welche Organisation"
+    },
+    "priority": {
+      "type": "number",
+      "default": 0
+    },
+    "active": {
+      "type": "boolean",
+      "default": false,
+      "description": "WICHTIG: Alle Regeln starten inaktiv \u2014 keine Automatisierung in 3A"
+    }
+  },
+  "required": [
+    "name",
+    "event_type_key",
+    "action_type"
+  ]
+}

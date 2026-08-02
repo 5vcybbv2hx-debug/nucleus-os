@@ -1,0 +1,41 @@
+{
+  "name": "EventAction",
+  "type": "object",
+  "properties": {
+    "rule_id": {
+      "type": "string",
+      "description": "Referenz auf EventRule ID"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "create_task",
+        "notify",
+        "change_priority",
+        "start_document_process",
+        "start_finance_process"
+      ]
+    },
+    "target_entity": {
+      "type": "string",
+      "description": "Welche Entity soll erstellt/ver\u00e4ndert werden"
+    },
+    "target_config": {
+      "type": "object",
+      "description": "JSON mit Ziel-Konfiguration"
+    },
+    "sequence": {
+      "type": "number",
+      "default": 0,
+      "description": "Reihenfolge der Actions"
+    },
+    "active": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "rule_id",
+    "action_type"
+  ]
+}

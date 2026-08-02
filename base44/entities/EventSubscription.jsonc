@@ -1,0 +1,45 @@
+{
+  "name": "EventSubscription",
+  "type": "object",
+  "properties": {
+    "user_reference": {
+      "type": "string",
+      "description": "Welcher Benutzer"
+    },
+    "event_type_key": {
+      "type": "string",
+      "description": "Welcher EventType (oder * f\u00fcr alle)"
+    },
+    "organization": {
+      "type": "string",
+      "description": "Filter nach Organisation (oder * f\u00fcr alle)"
+    },
+    "min_severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "normal",
+        "wichtig",
+        "kritisch"
+      ],
+      "default": "info"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "in_app",
+        "email",
+        "whatsapp"
+      ],
+      "default": "in_app",
+      "description": "Datenmodell only \u2014 keine Benachrichtigungen in 3A"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "user_reference"
+  ]
+}
