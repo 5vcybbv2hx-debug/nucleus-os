@@ -22,7 +22,35 @@
         "Urlaub",
         "Nur Dringendes"
       ],
-      "default": "Normal"
+      "default": "Normal",
+      "description": "LEGACY FIELD — Mix aus Tagesart und Arbeitsweise. Neue Logik verwendet work_mode und day_type. Nicht f\u00fcr neue Datens\u00e4tze verwenden."
+    },
+    "work_mode": {
+      "type": "string",
+      "enum": [
+        "Fokus",
+        "Verwaltung",
+        "Kreativ",
+        "Handwerklich",
+        "Unterwegs",
+        "Besprechung",
+        "Review"
+      ],
+      "default": "Verwaltung",
+      "description": "Aktuelle Arbeitsweise des Benutzers. Orthogonal zum Workspace."
+    },
+    "day_type": {
+      "type": "string",
+      "enum": [
+        "Arbeitstag",
+        "Urlaub",
+        "Feiertag",
+        "Krank",
+        "Familie",
+        "Sonderfall"
+      ],
+      "default": "Arbeitstag",
+      "description": "Art des Tages. Ersetzt die Tagesart-Werte aus day_mode."
     },
     "energy_level": {
       "type": "string",

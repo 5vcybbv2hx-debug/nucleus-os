@@ -13,7 +13,8 @@
       "enum": [
         "administrator",
         "vertretung",
-        "buero"
+        "buero",
+        "finance"
       ]
     },
     "preferred_organizations": {
@@ -21,6 +22,22 @@
       "items": {
         "type": "string"
       }
+    },
+    "preferred_workspaces": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "executive",
+          "operations",
+          "finance",
+          "projects",
+          "documents",
+          "goals",
+          "knowledge"
+        ]
+      },
+      "description": "Sichtbare Workspaces fuer diesen Benutzer. Steuert die Navigationssicht."
     },
     "active": {
       "type": "boolean",
