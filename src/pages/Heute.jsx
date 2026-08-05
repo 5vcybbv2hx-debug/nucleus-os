@@ -3,22 +3,22 @@ import { base44 } from '@/api/base44Client';
 import { format } from 'date-fns';
 import { de } from 'date-fns/locale';
 import {
-  Sunrise, Battery, Zap as ZapIcon, ListChecks, AlertTriangle, Clock, HelpCircle,
-  Wallet, Sparkles, TrendingUp, CalendarClock, CheckSquare, UserCheck, ClipboardCheck, CheckCircle,
+  Sunrise, Battery, Zap as ZapIcon, Sparkles,
+  ArrowRight, Circle, AlertTriangle, Clock,
+  Beer, Wallet, Briefcase, Compass,
 } from 'lucide-react';
 import TaskCard from '@/components/atlas/TaskCard';
 import TaskCompleteModal from '@/components/atlas/TaskCompleteModal';
-import BarHeute from '@/components/atlas/BarHeute';
-import { DAY_MODES, WORK_MODES, calculatePriority, getOrgMeta, getDueDate } from '@/lib/organizations';
+import { calculatePriority, getOrgMeta } from '@/lib/organizations';
 import { usePermissions } from '@/lib/usePermissions';
 import { logAudit } from '@/lib/audit';
 import { Link } from 'react-router-dom';
 
 const GREETINGS = [
   { h: [5,6,7,8,9,10], label: 'Guten Morgen', icon: Sunrise },
-  { h: [11,12,13,14,15,16,17], label: 'Guten Tag', icon: Battery },
-  { h: [18,19,20,21], label: 'Guten Abend', icon: ZapIcon },
-  { h: [22,23,0,1,2,3,4], label: 'Gute Nacht', icon: Sparkles },
+  { h: [11,12,13,14,15,16], label: 'Guten Tag', icon: Battery },
+  { h: [17,18,19,20], label: 'Guten Abend', icon: ZapIcon },
+  { h: [21,22,23,0,1,2,3,4], label: 'Gute Nacht', icon: Sparkles },
 ];
 
 const todayStr = () => new Date().toISOString().substring(0, 10);
@@ -27,118 +27,91 @@ export default function Heute() {
   const perms = usePermissions();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [dayMode, setDayMode] = useState('Normal');
-  const [energyLevel, setEnergyLevel] = useState('mittel');
-  const [availableTime, setAvailableTime] = useState(8);
-  const [dailyPlanId, setDailyPlanId] = useState(null);
   const [completeTask, setCompleteTask] = useState(null);
-  const [planItems, setPlanItems] = useState([]);
-  const [financeInsights, setFinanceInsights] = useState([]);
-  const [workMode, setWorkMode] = useState('Verwaltung'); // NEU: Work Mode (Arbeitsweise)
+  const [barInsights, setBarInsights] = useState([]);
+  const [barMode, setBarMode] = useState('read_only');
 
-  // Aufgaben über secure Backend (visibility serverseitig gefiltert)
   const loadTasks = useCallback(async () => {
     setLoading(true);
     try {
       const res = await base44.functions.invoke('secureTasks', { action: 'list' });
       setTasks(res.data?.tasks || []);
-    } catch {
-      setTasks([]);
-    }
+    } catch { setTasks([]); }
     setLoading(false);
   }, []);
 
-  // --- DailyPlan: ein Plan pro Benutzer pro Tag (nur für administrator/vertretung) ---
-  const ensureDailyPlan = useCallback(async () => {
-    const user = perms.user;
-    if (!user) return;
-    const today = todayStr();
-    const existing = await base44.entities.DailyPlan.filter({ user: user.id, date: today });
-    if (existing.length > 0) {
-      const plan = existing[0];
-      setDailyPlanId(plan.id);
-      setDayMode(plan.day_mode || 'Normal');
-      setEnergyLevel(plan.energy_level || 'mittel');
-      setAvailableTime(plan.available_time ?? 8);
-      setWorkMode(plan.work_mode || 'Verwaltung'); // NEU: work_mode lesen
-    } else {
-      const plan = await base44.entities.DailyPlan.create({
-        user: user.id, date: today, day_mode: 'Normal',
-        energy_level: 'mittel', available_time: 8, generated_at: new Date().toISOString(),
+  const loadBarData = useCallback(async () => {
+    try {
+      const insights = await base44.entities.ExternalInsight.filter({
+        organization: 'BAR', status: 'active'
       });
-      setDailyPlanId(plan.id);
-    }
-  }, [perms.user]);
-
-  useEffect(() => { loadTasks(); }, [loadTasks]);
-
-  useEffect(() => {
-    if (perms.user && perms.role !== 'buero') ensureDailyPlan();
-  }, [perms.user, perms.role, ensureDailyPlan]);
-
-  // DailyPlanItems für heutige Termine (nur administrator/vertretung)
-  useEffect(() => {
-    if (!dailyPlanId) { setPlanItems([]); return; }
-    let alive = true;
-    (async () => {
+      let connection = null;
       try {
-        const items = await base44.entities.DailyPlanItem.filter({ daily_plan: dailyPlanId });
-        if (alive) setPlanItems(items.sort((a, b) => (a.suggested_start || '99:99').localeCompare(b.suggested_start || '99:99')));
-      } catch { if (alive) setPlanItems([]); }
-    })();
-    return () => { alive = false; };
-  }, [dailyPlanId]);
+        const conns = await base44.entities.IntegrationConnection.filter({
+          source_app: '695532713e60f5ccfc3522b9'
+        });
+        connection = conns?.[0] || null;
+      } catch {}
+      const validInsights = insights || [];
+      const lastSync = connection?.last_success_at || connection?.last_sync_at;
+      const isStale = validInsights.length === 0 || !lastSync ||
+        (Date.now() - new Date(lastSync).getTime()) > 7200000;
+      const mode = connection?.enabled === false ? 'disabled'
+        : isStale ? 'stale' : 'read_only';
+      setBarInsights(validInsights);
+      setBarMode(mode);
+    } catch { setBarInsights([]); setBarMode('stale'); }
+  }, []);
 
-  // Finanz-Insights (nicht-BAR) via barAdapter (nur administrator)
-  useEffect(() => {
-    if (perms.role === 'vertretung') return;
-    let alive = true;
-    (async () => {
-      try {
-        const res = await base44.functions.invoke('barAdapter', { action: 'getBarSnapshot' });
-        if (!alive) return;
-        setFinanceInsights((res.data?.snapshot?.insights || res.snapshot?.insights || []).filter(i => i.organization && i.organization !== 'BAR'));
-      } catch { if (alive) setFinanceInsights([]); }
-    })();
-    return () => { alive = false; };
-  }, [perms.role]);
-
-  const updateDayMode = async (mode) => {
-    setDayMode(mode);
-    if (!dailyPlanId) return;
-    await base44.entities.DailyPlan.update(dailyPlanId, { day_mode: mode, manually_adjusted: true });
-  };
-  const updateEnergy = async (lvl) => {
-    setEnergyLevel(lvl);
-    if (!dailyPlanId) return;
-    await base44.entities.DailyPlan.update(dailyPlanId, { energy_level: lvl, manually_adjusted: true });
-  };
-  const updateTime = async (val) => {
-    setAvailableTime(val);
-    if (!dailyPlanId) return;
-    await base44.entities.DailyPlan.update(dailyPlanId, { available_time: val, manually_adjusted: true });
-  };
-
-  // NEU: Work Mode aktualisieren (speichert in DailyPlan.work_mode)
-  const updateWorkMode = async (mode) => {
-    setWorkMode(mode);
-    if (!dailyPlanId) return;
-    await base44.entities.DailyPlan.update(dailyPlanId, { work_mode: mode, manually_adjusted: true });
-  };
+  useEffect(() => { loadTasks(); loadBarData(); }, [loadTasks, loadBarData]);
 
   const hour = new Date().getHours();
   const greet = GREETINGS.find(g => g.h.includes(hour)) || GREETINGS[0];
   const GreetIcon = greet.icon;
+  const firstName = perms.user?.full_name?.split(' ')[0] || '';
 
-  // Sichtbare Aufgaben (zusätzlich clientseitig canViewTask, nicht archiviert)
   const visibleTasks = useMemo(() => {
     return tasks
       .filter(t => !t.isArchived && t.status !== 'Archiviert' && perms.canViewTask(t))
       .map(t => ({ ...t, calculated_priority: t.calculated_priority ?? calculatePriority(t) }));
   }, [tasks, perms]);
 
-  const taskById = useMemo(() => Object.fromEntries(tasks.map(t => [t.id, t])), [tasks]);
-  const decisions = visibleTasks.filter(t => t.status === 'Zur Prüfung').slice(0, 4);
+  const activeTasks = useMemo(() => {
+    return visibleTasks
+      .filter(t => t.status !== 'Erledigt' && t.status !== 'Nicht mehr notwendig')
+      .sort((a, b) => (b.calculated_priority || 0) - (a.calculated_priority || 0));
+  }, [visibleTasks]);
+
+  const nowTask = activeTasks[0] || null;
+  const nextTasks = activeTasks.slice(1, 4);
+  const decisions = visibleTasks.filter(t => t.status === 'Zur Prüfung').slice(0, 3);
+  const blocked = visibleTasks.filter(t => t.status === 'Blockiert' || t.status === 'Wartet auf Antwort').slice(0, 3);
+
+  // --- LAGEBILD ---
+  const lagebild = useMemo(() => {
+    const parts = [`${greet.label}${firstName ? ', ' + firstName : ''}.`];
+    if (barInsights.length > 0 && barMode === 'read_only') parts.push('Die Bar läuft stabil.');
+    else if (barMode === 'stale') parts.push('Bar-Status zuletzt vor einiger Zeit aktualisiert.');
+    else if (barMode === 'disabled') parts.push('Bar-Integration ist deaktiviert.');
+    if (decisions.length > 0) parts.push(`${decisions.length} ${decisions.length === 1 ? 'Aufgabe wartet' : 'Aufgaben warten'} auf deine Freigabe.`);
+    if (blocked.length > 0) parts.push(`${blocked.length} ${blocked.length === 1 ? 'Eintrag ist' : 'Einträge sind'} blockiert.`);
+    if (activeTasks.length === 0 && decisions.length === 0 && blocked.length === 0) {
+      parts.push('Alles ruhig. Genieß den Tag.');
+    } else if (decisions.length === 0 && blocked.length === 0 && activeTasks.length > 0) {
+      parts.push('Heute gibt es keine kritischen Probleme.');
+    }
+    return parts.join(' ');
+  }, [greet, firstName, barInsights, barMode, decisions, blocked, activeTasks]);
+
+  const handleStartNow = async (task) => {
+    if (task.status === 'Eingang' || task.status === 'Geplant') {
+      const prev = { status: task.status };
+      await base44.entities.Task.update(task.id, { status: 'In Bearbeitung' });
+      await logAudit({ action: 'status_change', entityType: 'Task', entityId: task.id, previousValue: prev, newValue: { status: 'In Bearbeitung' } });
+      loadTasks();
+    }
+    setCompleteTask(task);
+  };
 
   const handleCheckDecision = async (task) => {
     const prev = { status: task.status };
@@ -147,304 +120,214 @@ export default function Heute() {
     loadTasks();
   };
 
-  const isBuero = perms.role === 'buero';
-
-  if (isBuero) {
+  if (perms.role === 'buero') {
     return (
-      <BueroView
-        perms={perms}
-        tasks={visibleTasks}
-        loading={loading}
-        greet={greet}
-        GreetIcon={GreetIcon}
-        onReload={loadTasks}
-        completeTask={completeTask}
-        setCompleteTask={setCompleteTask}
-      />
+      <BueroView perms={perms} tasks={visibleTasks} loading={loading} greet={greet} GreetIcon={GreetIcon}
+        onReload={loadTasks} completeTask={completeTask} setCompleteTask={setCompleteTask} />
     );
   }
 
-  // --- administrator / vertretung: vollständiges Daily Briefing ---
-  const activeTasks = visibleTasks
-    .filter(t => t.status !== 'Erledigt' && t.status !== 'Nicht mehr notwendig')
-    .sort((a, b) => (b.calculated_priority || 0) - (a.calculated_priority || 0))
-    .slice(0, 3); // GEÄNDERT: Top 3 statt 8 (Executive Workspace Prinzip)
-
-  const criticalDeadlines = visibleTasks
-    .filter(t => { const d = getDueDate(t); return d && t.status !== 'Erledigt' && new Date(d) <= new Date(Date.now() + 14 * 86400000); })
-    .sort((a, b) => new Date(getDueDate(a)) - new Date(getDueDate(b)))
-    .slice(0, 4);
-
-  const unclear = visibleTasks.filter(t => t.status === 'Blockiert' || t.status === 'Wartet auf Antwort').slice(0, 4);
-
-  const today = todayStr();
-  const plannedToday = visibleTasks.filter(t => t.planned_date === today);
-  const doneToday = plannedToday.filter(t => t.status === 'Erledigt').length;
-  const progress = plannedToday.length > 0 ? Math.round((doneToday / plannedToday.length) * 100) : 0;
-
-  // Vertretung: keine vertraulichen Finanzinhalte
-  const isVertretung = perms.role === 'vertretung';
+  const colorMap = { emerald: 'bg-emerald-500', amber: 'bg-amber-500', red: 'bg-red-500' };
+  const statusCards = [
+    { label: 'Bar', icon: Beer, state: barMode === 'read_only' ? 'stabil' : barMode === 'stale' ? 'veraltet' : barMode === 'disabled' ? 'inaktiv' : '—', color: barMode === 'read_only' ? 'emerald' : barMode === 'stale' ? 'amber' : 'red', link: null, detail: barInsights.length > 0 ? `${barInsights.length} Insights` : null },
+    { label: 'Finanzen', icon: Wallet, state: 'stabil', color: 'emerald', link: '/unternehmen' },
+    { label: 'Sandra', icon: Briefcase, state: 'aktiv', color: 'emerald', link: '/team' },
+    { label: 'Atlas', icon: Compass, state: activeTasks.length > 0 ? `${activeTasks.length} offen` : 'ruhig', color: activeTasks.length > 5 ? 'amber' : 'emerald', link: '/arbeit' },
+  ];
 
   return (
-    <div className="px-4 pt-6 pb-4 lg:px-8">
-      {/* Greeting */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <div className="text-xs text-muted-foreground uppercase tracking-wide">{format(new Date(), 'EEEE, dd. MMMM yyyy', { locale: de })}</div>
-          <h1 className="text-xl font-semibold mt-1 flex items-center gap-2">
-            <GreetIcon size={20} className="text-primary" />
-            {greet.label}{perms.user?.full_name ? `, ${perms.user.full_name.split(' ')[0]}` : ''}
-          </h1>
+    <div className="px-4 pt-6 pb-24 lg:pb-8 lg:px-8 lg:pt-8 max-w-3xl mx-auto">
+      {/* === 1. Lagebild === */}
+      <div className="mb-8">
+        <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+          {format(new Date(), 'EEEE, dd. MMMM yyyy', { locale: de })}
+        </div>
+        <div className="flex items-start gap-3">
+          <GreetIcon size={22} className="text-primary mt-0.5 flex-shrink-0" />
+          <p className="text-base lg:text-lg leading-relaxed text-foreground">{lagebild}</p>
         </div>
       </div>
 
-      {/* NEU: Unternehmensstatus (Mock) */}
-      <div className="mb-4 flex items-center gap-2">
-        <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-        <span className="text-sm text-muted-foreground">Unternehmen stabil</span>
-      </div>
-
-      {/* NEU: Work Mode Selector (kompakter Pill) */}
-      <div className="mb-4">
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
-          {WORK_MODES.map(mode => (
-            <button key={mode} onClick={() => updateWorkMode(mode)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
-                workMode === mode ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:bg-secondary'
-              }`}>{mode}</button>
-          ))}
-        </div>
-      </div>
-
-      {/* Day Mode (LEGACY — später einklappbar) */}
-      <div className="mb-4">
-        <div className="text-xs text-muted-foreground font-medium mb-2">Tagesmodus</div>
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
-          {DAY_MODES.map(mode => (
-            <button key={mode} onClick={() => updateDayMode(mode)}
-              className={`flex-shrink-0 px-3.5 py-2 rounded-xl border text-sm font-medium transition-all ${
-                dayMode === mode ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:bg-secondary'
-              }`}>{mode}</button>
-          ))}
-        </div>
-      </div>
-
-      {/* Energy + Time */}
-      <div className="mb-5 grid grid-cols-2 gap-3">
-        <div className="p-3 bg-card border border-border rounded-2xl">
-          <div className="text-xs text-muted-foreground font-medium mb-2 flex items-center gap-1.5"><ZapIcon size={13} /> Energie</div>
-          <div className="flex gap-1.5">
-            {['niedrig','mittel','hoch'].map(l => (
-              <button key={l} onClick={() => updateEnergy(l)}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                  energyLevel === l ? 'bg-primary text-primary-foreground' : 'bg-secondary text-muted-foreground'
-                }`}>{l}</button>
-            ))}
-          </div>
-        </div>
-        <div className="p-3 bg-card border border-border rounded-2xl">
-          <div className="text-xs text-muted-foreground font-medium mb-2 flex items-center gap-1.5"><Clock size={13} /> Zeit (h)</div>
-          <div className="flex items-center gap-2">
-            <input type="range" min="0" max="16" step="1" value={availableTime}
-              onChange={e => updateTime(Number(e.target.value))} className="flex-1 accent-primary" />
-            <span className="text-sm font-semibold w-8 text-right">{availableTime}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Progress */}
-      <div className="mb-5 p-4 bg-card border border-border rounded-2xl">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs text-muted-foreground font-medium flex items-center gap-1.5"><TrendingUp size={14} /> Tagesfortschritt</span>
-          <span className="text-xs text-muted-foreground">{doneToday} / {plannedToday.length} erledigt</span>
-        </div>
-        <div className="h-2.5 bg-secondary rounded-full overflow-hidden">
-          <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
-        </div>
-        {plannedToday.length === 0 && <p className="text-[11px] text-muted-foreground/60 mt-2">Keine Aufgaben für heute geplant.</p>}
-      </div>
-
-      {/* Prioritized Tasks */}
-      <section className="mb-6">
-        <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><ListChecks size={16} /> Heute — Die drei wichtigsten</h2>
+      {/* === 2. Jetzt === */}
+      <div className="mb-8">
+        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-3">Jetzt</div>
         {loading ? (
-          <div className="space-y-2">{[...Array(3)].map((_,i) => <div key={i} className="h-20 bg-card rounded-2xl animate-pulse" />)}</div>
-        ) : activeTasks.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Sparkles size={28} className="mx-auto mb-2 opacity-40" />
-            <p className="text-sm">Keine offenen Aufgaben — schöner Tag.</p>
+          <div className="h-28 bg-card rounded-2xl animate-pulse" />
+        ) : nowTask ? (
+          <div className="p-5 bg-card border border-border rounded-2xl">
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div className="flex-1 min-w-0">
+                <p className="text-lg font-semibold text-foreground leading-tight">{nowTask.title}</p>
+                {nowTask.description && (
+                  <p className="text-sm text-muted-foreground mt-1.5 line-clamp-2">{nowTask.description}</p>
+                )}
+                <div className="flex items-center gap-3 mt-3">
+                  {nowTask.estimated_duration && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock size={12} /> ca. {nowTask.estimated_duration} Min
+                    </span>
+                  )}
+                  {nowTask.organization && (() => {
+                    const org = getOrgMeta(nowTask.organization);
+                    return <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] ${org.chip}`}><span>{org.emoji}</span>{org.short}</span>;
+                  })()}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => handleStartNow(nowTask)}
+              className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-medium text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-colors min-h-[48px]"
+            >
+              Jetzt erledigen
+              <ArrowRight size={18} />
+            </button>
           </div>
         ) : (
-          <div>{activeTasks.map(t => <TaskCard key={t.id} task={t} onComplete={setCompleteTask} />)}</div>
+          <div className="p-6 bg-card border border-border rounded-2xl text-center">
+            <Sparkles size={28} className="mx-auto mb-2 text-muted-foreground/40" />
+            <p className="text-sm text-muted-foreground">Nichts Dringendes offen.</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">Genieß die Ruhe.</p>
+          </div>
         )}
-      </section>
+      </div>
 
-      {/* Critical Deadlines */}
-      <section className="mb-6">
-        <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Clock size={16} /> Kritische Fristen</h2>
-        {criticalDeadlines.length === 0 ? (
-          <p className="text-xs text-muted-foreground/60">Keine dringenden Fristen.</p>
+      {/* === 3. Danach === */}
+      <div className="mb-8">
+        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-3">Danach</div>
+        {nextTasks.length === 0 && decisions.length === 0 && blocked.length === 0 ? (
+          <p className="text-sm text-muted-foreground/60 px-1">Keine weiteren Prioritäten.</p>
         ) : (
           <div className="space-y-2">
-            {criticalDeadlines.map(t => {
-              const org = getOrgMeta(t.organization);
-              const d = getDueDate(t);
-              return (
-                <div key={t.id} className="p-3 bg-card border border-border rounded-xl flex items-center gap-3">
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] ${org.chip}`}><span>{org.emoji}</span>{org.short}</span>
-                  <span className="text-sm flex-1 truncate">{t.title}</span>
-                  {d && <span className="text-xs text-red-400">{format(new Date(d), 'dd.MM.', { locale: de })}</span>}
+            {decisions.map(task => (
+              <div key={task.id} className="p-3.5 bg-card border border-border rounded-xl flex items-center gap-3">
+                <AlertTriangle size={16} className="text-amber-400 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{task.title}</p>
+                  <p className="text-[11px] text-amber-400">Wartet auf Freigabe</p>
                 </div>
-              );
-            })}
+                <button onClick={() => handleCheckDecision(task)}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors flex-shrink-0">
+                  Prüfen
+                </button>
+              </div>
+            ))}
+            {blocked.map(task => (
+              <div key={task.id} className="p-3.5 bg-amber-500/5 border border-amber-500/20 rounded-xl flex items-center gap-3">
+                <Circle size={16} className="text-amber-400 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{task.title}</p>
+                  <p className="text-[11px] text-amber-400">{task.status}</p>
+                </div>
+              </div>
+            ))}
+            {nextTasks.map(task => <TaskCard key={task.id} task={task} onComplete={setCompleteTask} />)}
           </div>
         )}
-      </section>
+      </div>
 
-      {perms.isPierre && <BarHeute />}
-
-      {unclear.length > 0 && (
-        <section className="mb-6">
-          <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><HelpCircle size={16} /> Ungeklärte Einträge</h2>
-          <div className="space-y-2">
-            {unclear.map(t => {
-              const org = getOrgMeta(t.organization);
-              return (
-                <div key={t.id} className="p-3 bg-amber-500/5 border border-amber-500/20 rounded-xl flex items-center gap-3">
-                  <AlertTriangle size={15} className="text-amber-400 flex-shrink-0" />
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] ${org.chip}`}><span>{org.emoji}</span>{org.short}</span>
-                  <span className="text-sm flex-1 truncate">{t.title}</span>
-                  <span className="text-[11px] text-amber-400">{t.status}</span>
+      {/* === 4. Unternehmensstatus === */}
+      <div className="mb-4">
+        <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-3">Unternehmensstatus</div>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {statusCards.map(card => {
+            const Icon = card.icon;
+            const dotColor = colorMap[card.color] || 'bg-muted-foreground';
+            return (
+              <Link key={card.label} to={card.link || '#'}
+                className={`p-4 bg-card border border-border rounded-2xl transition-all ${card.link ? 'hover:border-primary/30 hover:bg-primary/5' : ''}`}>
+                <div className="flex items-center gap-2 mb-3">
+                  <Icon size={15} className="text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground">{card.label}</span>
                 </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
-
-      <section className="mb-6">
-        <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><CalendarClock size={16} /> Heutige Termine</h2>
-        {planItems.length === 0 ? (
-          <div className="p-3 border border-dashed border-border rounded-xl text-xs text-muted-foreground/60 text-center">
-            Keine Termine heute. <Link to="/plan" className="text-primary hover:underline">Gehe zur Planung</Link> um deinen Tag zu strukturieren.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {planItems.slice(0, 5).map(item => {
-              const task = taskById[item.task];
-              const org = task ? getOrgMeta(task.organization) : null;
-              return (
-                <div key={item.id} className="p-3 bg-card border border-border rounded-xl flex items-center gap-3">
-                  <span className="text-xs font-semibold text-primary w-12 flex-shrink-0">{item.suggested_start || '—'}</span>
-                  <span className="text-sm flex-1 truncate">{task?.title || 'Aufgabe'}</span>
-                  {org && <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] flex-shrink-0 ${org.chip}`}><span>{org.emoji}</span>{org.short}</span>}
+                <div className="flex items-center gap-2">
+                  <span className={`inline-block w-2 h-2 rounded-full ${dotColor}`} />
+                  <span className="text-sm font-semibold">{card.state}</span>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
+                {card.detail && <p className="text-[11px] text-muted-foreground mt-1">{card.detail}</p>}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
 
-      {/* Finanzhinweise: nur für administrator (keine vertraulichen Inhalte für Vertretung) */}
-      {!isVertretung && (
-        <section className="mb-6">
-          <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Wallet size={16} /> Finanzhinweise</h2>
-          {financeInsights.length > 0 ? (
-            <div className="space-y-2">
-              {financeInsights.map((ins, i) => {
-                const org = getOrgMeta(ins.organization);
-                return (
-                  <div key={ins.externalId || i} className="p-3 bg-card border border-border rounded-xl">
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] ${org.chip}`}><span>{org.emoji}</span>{org.short}</span>
-                    </div>
-                    <div className="text-sm font-medium">{ins.title}</div>
-                    {ins.summary && <div className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{ins.summary}</div>}
+      {/* Bar-Details (nur Pierre, einklappbar) */}
+      {perms.isPierre && barInsights.length > 0 && (
+        <div className="mb-4">
+          <details className="group">
+            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors select-none flex items-center gap-1">
+              <Beer size={13} /> Bar-Details ({barInsights.length})
+            </summary>
+            <div className="mt-2 space-y-1.5">
+              {barInsights.slice(0, 5).map((ins, i) => (
+                <div key={ins.external_reference || i} className="p-2.5 bg-card border border-border rounded-lg flex items-start gap-2">
+                  <span className={`inline-block w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
+                    ins.severity === 'critical' ? 'bg-red-500' : ins.severity === 'high' ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{ins.title}</p>
+                    {ins.summary && <p className="text-[11px] text-muted-foreground line-clamp-1">{ins.summary}</p>}
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="p-3 bg-card border border-border rounded-xl">
-              <p className="text-xs text-muted-foreground">Detaillierte Finanzübersicht in der Finanz-Sektion.</p>
-              <Link to="/finanzen" className="text-sm text-primary hover:underline mt-2 inline-flex items-center gap-1">Finanzübersicht öffnen →</Link>
-            </div>
-          )}
-        </section>
-      )}
-
-      <section className="mb-6">
-        <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><ListChecks size={16} /> Offene Entscheidungen</h2>
-        {decisions.length === 0 ? (
-          <div className="p-3 border border-dashed border-border rounded-xl text-xs text-muted-foreground/60 flex items-center gap-2">
-            <CheckCircle size={14} className="text-green-400 flex-shrink-0" /> Keine offenen Entscheidungen — alles klar.
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {decisions.map(t => {
-              const org = getOrgMeta(t.organization);
-              return (
-                <div key={t.id} className="p-3 bg-card border border-border rounded-xl flex items-center gap-3">
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border text-[11px] flex-shrink-0 ${org.chip}`}><span>{org.emoji}</span>{org.short}</span>
-                  <span className="text-sm flex-1 truncate">{t.title}</span>
-                  <button onClick={() => handleCheckDecision(t)} className="text-xs px-2.5 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-lg transition-colors flex-shrink-0">Prüfen</button>
                 </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {completeTask && (
-        <TaskCompleteModal task={completeTask} onClose={() => setCompleteTask(null)} onSuggest={loadTasks} />
+              ))}
+              <a href="https://app.base44.com/apps/695532713e60f5ccfc3522b9/editor/preview" target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2">
+                SAVO öffnen <ArrowRight size={12} />
+              </a>
+            </div>
+          </details>
+        </div>
       )}
+
+      {completeTask && <TaskCompleteModal task={completeTask} onClose={() => { setCompleteTask(null); loadTasks(); }} />}
     </div>
   );
 }
 
-// --- Vereinfachte Arbeitsansicht für Rolle "buero" ---
+// --- Büro-Ansicht (Johanna) ---
 function BueroView({ perms, tasks, loading, greet, GreetIcon, onReload, completeTask, setCompleteTask }) {
-  const user = perms.user;
-  const mine = tasks.filter(t => t.assignee === user?.id && t.status !== 'Erledigt' && t.status !== 'Nicht mehr notwendig');
-  const eingang = tasks.filter(t => t.status === 'Eingang');
-  const unclear = tasks.filter(t => t.status === 'Blockiert' || t.status === 'Wartet auf Antwort');
-  const zurPruefung = tasks.filter(t => t.status === 'Zur Prüfung');
-  const delegiert = tasks.filter(t => t.status === 'Delegiert');
-
-  const Section = ({ icon: Icon, title, items, emptyNote }) => (
-    <section className="mb-6">
-      <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><Icon size={16} /> {title} <span className="text-muted-foreground/60 font-normal">({items.length})</span></h2>
-      {loading ? (
-        <div className="space-y-2">{[...Array(2)].map((_,i) => <div key={i} className="h-16 bg-card rounded-2xl animate-pulse" />)}</div>
-      ) : items.length === 0 ? (
-        <p className="text-xs text-muted-foreground/60 p-3 border border-dashed border-border rounded-xl">{emptyNote}</p>
-      ) : (
-        <div>{items.map(t => <TaskCard key={t.id} task={t} onComplete={setCompleteTask} />)}</div>
-      )}
-    </section>
-  );
+  const firstName = perms.user?.full_name?.split(' ')[0] || '';
+  const myTasks = tasks.filter(t => t.status !== 'Erledigt' && t.status !== 'Archiviert').slice(0, 5);
+  const pendingApproval = tasks.filter(t => t.status === 'Zur Prüfung').slice(0, 3);
 
   return (
-    <div className="px-4 pt-6 pb-4 lg:px-8">
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <div className="text-xs text-muted-foreground uppercase tracking-wide">{format(new Date(), 'EEEE, dd. MMMM yyyy', { locale: de })}</div>
-          <h1 className="text-xl font-semibold mt-1 flex items-center gap-2">
-            <GreetIcon size={20} className="text-primary" />
-            {greet.label}{user?.full_name ? `, ${user.full_name.split(' ')[0]}` : ''}
-          </h1>
+    <div className="px-4 pt-6 pb-24 lg:pb-8 lg:px-8 max-w-3xl mx-auto">
+      <div className="mb-6">
+        <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+          {format(new Date(), 'EEEE, dd. MMMM yyyy', { locale: de })}
+        </div>
+        <div className="flex items-start gap-3">
+          <GreetIcon size={22} className="text-primary mt-0.5 flex-shrink-0" />
+          <p className="text-base lg:text-lg leading-relaxed text-foreground">
+            {greet.label}{firstName ? ', ' + firstName : ''}.{' '}
+            {myTasks.length > 0 ? `Du hast ${myTasks.length} offene Aufgaben.` : 'Dein Tag ist frei.'}
+            {pendingApproval.length > 0 && ` ${pendingApproval.length} warten auf Freigabe.`}
+          </p>
         </div>
       </div>
 
-      <Section icon={UserCheck} title="Mir zugewiesene Aufgaben" items={mine} emptyNote="Nichts dir direkt zugewiesen." />
-      <Section icon={CheckSquare} title="Eingang" items={eingang} emptyNote="Nichts Neues im Eingang." />
-      <Section icon={AlertTriangle} title="Ungeklärte Einträge" items={unclear} emptyNote="Nichts ungeklärt." />
-      <Section icon={ClipboardCheck} title="Wartet auf Prüfung" items={zurPruefung} emptyNote="Nichts zur Prüfung." />
-      <Section icon={HelpCircle} title="Delegierte Rückfragen" items={delegiert} emptyNote="Keine delegierten Rückfragen." />
-
-      {completeTask && (
-        <TaskCompleteModal task={completeTask} onClose={() => setCompleteTask(null)} onSuggest={onReload} />
+      {myTasks[0] && (
+        <div className="mb-6">
+          <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-3">Jetzt</div>
+          <div className="p-5 bg-card border border-border rounded-2xl">
+            <p className="text-lg font-semibold mb-3">{myTasks[0].title}</p>
+            <button onClick={() => setCompleteTask(myTasks[0])}
+              className="w-full py-3.5 bg-primary text-primary-foreground rounded-xl font-medium text-sm flex items-center justify-center gap-2 min-h-[48px]">
+              Jetzt erledigen <ArrowRight size={18} />
+            </button>
+          </div>
+        </div>
       )}
+
+      {myTasks.length > 1 && (
+        <div className="mb-6">
+          <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-3">Danach</div>
+          <div className="space-y-2">
+            {myTasks.slice(1).map(t => <TaskCard key={t.id} task={t} onComplete={setCompleteTask} />)}
+          </div>
+        </div>
+      )}
+
+      {completeTask && <TaskCompleteModal task={completeTask} onClose={() => { setCompleteTask(null); onReload(); }} />}
     </div>
   );
 }

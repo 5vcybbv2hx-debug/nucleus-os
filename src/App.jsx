@@ -19,8 +19,9 @@ import Assistant from '@/pages/Assistant';
 import Heute from '@/pages/Heute';
 import Eingang from '@/pages/Eingang';
 import Mehr from '@/pages/Mehr';
-import Plan from '@/pages/Plan';
-import Aufgaben from '@/pages/Aufgaben';
+import Arbeit from '@/pages/Arbeit';
+import Team from '@/pages/Team';
+import Unternehmen from '@/pages/Unternehmen';
 import Administration from '@/pages/Administration';
 import EventEngine from '@/pages/EventEngine';
 import Cases from '@/pages/Cases';
@@ -58,8 +59,9 @@ const AuthenticatedApp = () => {
       <Route element={<AppLayout />}>
         <Route path="/" element={<Heute />} />
         <Route path="/eingang" element={<Eingang />} />
-        <Route path="/plan" element={<Plan />} />
-        <Route path="/aufgaben" element={<Aufgaben />} />
+        <Route path="/arbeit" element={<Arbeit />} />
+        <Route path="/team" element={<Team />} />
+        <Route path="/unternehmen" element={<Unternehmen />} />
         <Route path="/mehr" element={<Mehr />} />
         <Route path="/administration" element={<Administration />} />
         <Route path="/event-engine" element={<EventEngine />} />
