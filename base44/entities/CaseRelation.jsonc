@@ -1,17 +1,5 @@
 {
   "name": "CaseRelation",
-<<<<<<< HEAD
-  "description": "Strukturierte Beziehungen zwischen Vorgängen",
-  "type": "object",
-  "properties": {
-    "case_id": {"type": "string"},
-    "related_case_id": {"type": "string"},
-    "relation_type": {"type": "string", "enum": ["gehört zu", "ist Teil von", "ersetzt", "folgt auf", "verursacht", "abhängig von", "verbunden mit"]},
-    "description": {"type": "string"}
-  },
-  "required": ["case_id", "related_case_id", "relation_type"]
-}
-=======
   "type": "object",
   "properties": {
     "case_id": {
@@ -46,4 +34,3 @@
     "relation_type"
   ]
 }
->>>>>>> 68c0589a20970f36d9ac65ed3b458258ef412f05

@@ -1,18 +1,5 @@
 {
   "name": "CaseParticipant",
-<<<<<<< HEAD
-  "description": "Beteiligte pro Vorgang",
-  "type": "object",
-  "properties": {
-    "case_id": {"type": "string"},
-    "user_reference": {"type": "string"},
-    "role": {"type": "string", "enum": ["owner", "contributor", "observer", "approver"], "default": "contributor"},
-    "active": {"type": "boolean", "default": true},
-    "joined_at": {"type": "string", "format": "date-time"}
-  },
-  "required": ["case_id", "user_reference"]
-}
-=======
   "type": "object",
   "properties": {
     "case_id": {
@@ -47,4 +34,3 @@
     "user_reference"
   ]
 }
->>>>>>> 68c0589a20970f36d9ac65ed3b458258ef412f05

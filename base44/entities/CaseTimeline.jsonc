@@ -1,21 +1,5 @@
 {
   "name": "CaseTimeline",
-<<<<<<< HEAD
-  "description": "Chronologische Aktivitäten pro Vorgang",
-  "type": "object",
-  "properties": {
-    "case_id": {"type": "string"},
-    "entry_type": {"type": "string", "enum": ["business_event", "task", "decision", "note", "comment", "status_change", "document", "calendar", "idea"]},
-    "title": {"type": "string"},
-    "description": {"type": "string"},
-    "source_entity_id": {"type": "string"},
-    "source_entity_type": {"type": "string"},
-    "source_system": {"type": "string"},
-    "metadata": {"type": "object"}
-  },
-  "required": ["case_id", "entry_type", "title"]
-}
-=======
   "type": "object",
   "properties": {
     "case_id": {
@@ -68,4 +52,3 @@
     "title"
   ]
 }
->>>>>>> 68c0589a20970f36d9ac65ed3b458258ef412f05

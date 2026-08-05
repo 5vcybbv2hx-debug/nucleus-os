@@ -1,0 +1,57 @@
+{
+  "name": "ExternalIdentityMapping",
+  "type": "object",
+  "properties": {
+    "atlas_user_id": {
+      "type": "string",
+      "description": "Referenz auf UserProfile.user_reference (welcher Atlas-Benutzer). Leerer String fuer externe Benutzer ohne Atlas-Account."
+    },
+    "source_system": {
+      "type": "string",
+      "enum": [
+        "SAVO",
+        "SANDRA",
+        "OUTLOOK",
+        "SEVDESK",
+        "DATEV",
+        "MANUAL"
+      ],
+      "description": "Externes System, in dem der Benutzer existiert"
+    },
+    "external_user_id": {
+      "type": "string",
+      "description": "ID des Benutzers im externen System"
+    },
+    "external_user_label": {
+      "type": "string",
+      "description": "Optionaler Anzeigename (z.B. Hugi, Sandra H.)"
+    },
+    "external_role_label": {
+      "type": "string",
+      "description": "Rein informative Rollenbezeichnung im externen System (z.B. MANAGER, sandra_admin). Keine Autoritaet, keine Berechtigungsquelle."
+    },
+    "mapping_status": {
+      "type": "string",
+      "enum": [
+        "confirmed",
+        "unconfirmed",
+        "stale"
+      ],
+      "default": "unconfirmed",
+      "description": "Bestaetigungsstatus der Zuordnung"
+    },
+    "last_verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optionale Notizen zur Zuordnung"
+    }
+  },
+  "required": [
+    "atlas_user_id",
+    "source_system",
+    "external_user_id"
+  ]
+}
