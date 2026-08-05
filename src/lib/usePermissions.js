@@ -5,21 +5,41 @@ import { base44 } from '@/api/base44Client';
  * usePermissions — zentraler Permission-Service für Projekt Atlas.
  *
  * Basierend auf:
- *   - UserProfile.default_role (administrator | vertretung | buero)
+ *   - UserProfile.default_role (administrator | vertretung | buero | finance)
+ *   - UserProfile.preferred_workspaces (array von workspace keys)
  *   - Permission-Entität (role × organization × module)
  *   - Task.visibility (Nur Pierre, Privat, Team, ...)
  *
  * Default-Berechtigungen (hartcodiert bis Permission-Datensätze existieren):
  *   administrator: alles true für alle Organisationen
  *   vertretung: canView für SANDRA, FAMILIE, BAR; canEdit für SANDRA, FAMILIE; keine confidential
- *   buero: canView für BAR, SANDRA; canEdit für BAR, SANDRA; keine confidential, kein approve
+ *   buero: canView für BAR; canEdit für BAR; keine confidential, kein approve
+ *   finance: canView für BAR, SANDRA; canEdit für BAR, SANDRA; keine confidential, kein approve
  *
  * Identifikation "Pierre": profile.default_role === 'administrator' (NICHT E-Mail-Substring).
  */
+
 const DEFAULTS = {
   administrator: { all: true },
   vertretung: { view: ['SANDRA', 'FAMILIE', 'BAR'], edit: ['SANDRA', 'FAMILIE'], approve: [], delegate: [], confidential: [] },
-  buero: { view: ['BAR', 'SANDRA'], edit: ['BAR', 'SANDRA'], approve: [], delegate: [], confidential: [] },
+  buero: { view: ['BAR'], edit: ['BAR'], approve: [], delegate: [], confidential: [] },
+  finance: { view: ['BAR', 'SANDRA'], edit: ['BAR', 'SANDRA'], approve: [], delegate: [], confidential: [] },
+};
+
+// Workspace-Zugriff pro Rolle
+const WORKSPACE_ACCESS = {
+  administrator: ['executive', 'operations', 'finance', 'projects', 'documents', 'goals', 'knowledge'],
+  vertretung: ['projects', 'executive'],
+  buero: ['operations'],
+  finance: ['finance'],
+};
+
+// Standard-Workspace pro Rolle
+const DEFAULT_WORKSPACE = {
+  administrator: 'executive',
+  vertretung: 'projects',
+  buero: 'operations',
+  finance: 'finance',
 };
 
 export function usePermissions() {
@@ -111,11 +131,56 @@ export function usePermissions() {
     return canView('aufgaben', task.organization);
   };
 
+  // --- Workspace-Logik (NEU — additive, keine bestehende Logik berührt) ---
+
+  // Verfügbare Workspaces für diesen Benutzer
+  const availableWorkspaces = () => {
+    // 1. Aus UserProfile.preferred_workspaces (falls gesetzt)
+    if (profile?.preferred_workspaces && profile.preferred_workspaces.length > 0) {
+      return profile.preferred_workspaces;
+    }
+    // 2. Fallback auf rollenbasierten Default
+    return WORKSPACE_ACCESS[role] || WORKSPACE_ACCESS.buero || [];
+  };
+
+  // Standard-Workspace für diesen Benutzer
+  const defaultWorkspace = () => {
+    return DEFAULT_WORKSPACE[role] || 'operations';
+  };
+
+  // Hat der Benutzer mehr als einen Workspace? (für Workspace-Wechsler)
+  const hasMultipleWorkspaces = () => {
+    return availableWorkspaces().length > 1;
+  };
+
+  // Ist ein bestimmter Workspace für diesen Benutzer sichtbar?
+  const canAccessWorkspace = (workspace) => {
+    return availableWorkspaces().includes(workspace);
+  };
+
+  // Rollen-spezifische Einschränkungen im Executive Workspace
+  // Sandra (vertretung): keine persönlichen Reflexionen, keine vertraulichen Daten
+  const executiveRestrictions = () => {
+    if (role !== 'vertretung') return null;
+    return {
+      noPersonalReflections: true,
+      noConfidentialData: true,
+      noPrivateTasks: true,
+      label: 'Eingeschränkte Executive-Ansicht',
+    };
+  };
+
   return {
     user, role, loading, isPierre,
     canView, canCreate, canEdit, canApprove, canDelegate, canViewConfidential,
     isAdmin, getAccessibleOrganizations, canViewTask,
     organizations: orgs,
     activeOrgs: orgs.filter(o => o.status === 'aktiv').sort((a,b) => (a.display_order||0)-(b.display_order||0)).map(o => o.short_name),
+    // NEU: Workspace-Funktionen
+    availableWorkspaces: availableWorkspaces(),
+    defaultWorkspace: defaultWorkspace(),
+    hasMultipleWorkspaces: hasMultipleWorkspaces(),
+    canAccessWorkspace,
+    executiveRestrictions: executiveRestrictions(),
   };
 }

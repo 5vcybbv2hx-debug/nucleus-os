@@ -29,8 +29,27 @@ export const TASK_STATUS_LABELS = {
   offen: 'Offen', in_bearbeitung: 'In Bearbeitung', erledigt: 'Erledigt',
 };
 
+// LEGACY — Mix aus Tagesart und Arbeitsweise. Neue Logik verwendet WORK_MODES und DAY_TYPES.
 export const DAY_MODES = ['Viel Energie', 'Normal', 'Müde', 'Chaotischer Tag', 'Handwerkstag', 'Barbetrieb', 'Familie', 'Urlaub', 'Nur Dringendes'];
 
+// NEU — Work Modes: Aktuelle Arbeitsweise des Benutzers (orthogonal zu Workspaces)
+export const WORK_MODES = ['Fokus', 'Verwaltung', 'Kreativ', 'Handwerklich', 'Unterwegs', 'Besprechung', 'Review'];
+
+// NEU — Day Types: Art des Tages (ersetzt Tagesart-Werte aus DAY_MODES)
+export const DAY_TYPES = ['Arbeitstag', 'Urlaub', 'Feiertag', 'Krank', 'Familie', 'Sonderfall'];
+
+// NEU — Workspaces: Dauerhafte Arbeitsbereiche (gesteuert über Navigation + Berechtigungen)
+export const WORKSPACES = [
+  { key: 'executive', label: 'Executive', icon: 'Crown', description: 'Strategische Übersicht, Kompass, Check-In' },
+  { key: 'operations', label: 'Operations', icon: 'Settings', description: 'Bar-Alltag, Personal, Reinigung, Wartung' },
+  { key: 'finance', label: 'Finance', icon: 'Wallet', description: 'Buchhaltungsvorbereitung, Steuern, Vermögen' },
+  { key: 'projects', label: 'Projects', icon: 'Briefcase', description: 'Vorgänge, Sandra-Integration, Bauzeichnungen' },
+  { key: 'documents', label: 'Documents', icon: 'FileText', description: 'Dokumente, Verträge, Ablage' },
+  { key: 'goals', label: 'Goals', icon: 'Target', description: 'Ziele, Meilensteine, Strategie' },
+  { key: 'knowledge', label: 'Knowledge', icon: 'BookOpen', description: 'Wissen, Notizen, Referenzen' },
+];
+
+// Work Types (bestehend — für Task- Eigenschaft, nicht zu verwechseln mit Work Modes)
 export const WORK_TYPES = ['Verwaltung', 'Finanzen', 'Kreativ', 'Kommunikation', 'Operativ', 'Handwerklich', 'Familie', 'Persönlich'];
 
 // Hilfsfunktion: Fälligkeitsdatum (neues Feld due_date, Legacy-Fallback dueDate)
@@ -51,15 +70,13 @@ export function calculatePriority(task) {
     else if (days <= 3) score += 60;
     else if (days <= 7) score += 40;
     else if (days <= 14) score += 20;
-    else score += 8;
-  } else {
-    score += 5;
   }
-  const mp = { hoch: 30, mittel: 15, niedrig: 5 };
-  score += mp[task.manual_priority] || 10;
-  score += Math.min((task.shift_count || 0) * 3, 15);
-  if (task.status === 'Blockiert') score += 10;
-  if (task.status === 'Wartet auf Antwort') score += 5;
-  if (task.energy_required === 'hoch') score += 4;
-  return Math.round(score);
+  const mp = task.manual_priority;
+  if (mp === 'hoch') score += 50;
+  else if (mp === 'mittel') score += 25;
+  else if (mp === 'niedrig') score += 5;
+  if (task.status === 'Zur Prüfung') score += 30;
+  if (task.status === 'Blockiert') score += 20;
+  if (task.status === 'Wartet auf Antwort') score += 15;
+  return score;
 }
