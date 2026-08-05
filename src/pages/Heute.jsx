@@ -9,7 +9,7 @@ import {
 import TaskCard from '@/components/atlas/TaskCard';
 import TaskCompleteModal from '@/components/atlas/TaskCompleteModal';
 import BarHeute from '@/components/atlas/BarHeute';
-import { DAY_MODES, calculatePriority, getOrgMeta, getDueDate } from '@/lib/organizations';
+import { DAY_MODES, WORK_MODES, calculatePriority, getOrgMeta, getDueDate } from '@/lib/organizations';
 import { usePermissions } from '@/lib/usePermissions';
 import { logAudit } from '@/lib/audit';
 import { Link } from 'react-router-dom';
@@ -34,6 +34,7 @@ export default function Heute() {
   const [completeTask, setCompleteTask] = useState(null);
   const [planItems, setPlanItems] = useState([]);
   const [financeInsights, setFinanceInsights] = useState([]);
+  const [workMode, setWorkMode] = useState('Verwaltung'); // NEU: Work Mode (Arbeitsweise)
 
   // Aufgaben über secure Backend (visibility serverseitig gefiltert)
   const loadTasks = useCallback(async () => {
@@ -59,6 +60,7 @@ export default function Heute() {
       setDayMode(plan.day_mode || 'Normal');
       setEnergyLevel(plan.energy_level || 'mittel');
       setAvailableTime(plan.available_time ?? 8);
+      setWorkMode(plan.work_mode || 'Verwaltung'); // NEU: work_mode lesen
     } else {
       const plan = await base44.entities.DailyPlan.create({
         user: user.id, date: today, day_mode: 'Normal',
@@ -117,6 +119,13 @@ export default function Heute() {
     await base44.entities.DailyPlan.update(dailyPlanId, { available_time: val, manually_adjusted: true });
   };
 
+  // NEU: Work Mode aktualisieren (speichert in DailyPlan.work_mode)
+  const updateWorkMode = async (mode) => {
+    setWorkMode(mode);
+    if (!dailyPlanId) return;
+    await base44.entities.DailyPlan.update(dailyPlanId, { work_mode: mode, manually_adjusted: true });
+  };
+
   const hour = new Date().getHours();
   const greet = GREETINGS.find(g => g.h.includes(hour)) || GREETINGS[0];
   const GreetIcon = greet.icon;
@@ -159,7 +168,7 @@ export default function Heute() {
   const activeTasks = visibleTasks
     .filter(t => t.status !== 'Erledigt' && t.status !== 'Nicht mehr notwendig')
     .sort((a, b) => (b.calculated_priority || 0) - (a.calculated_priority || 0))
-    .slice(0, 8);
+    .slice(0, 3); // GEÄNDERT: Top 3 statt 8 (Executive Workspace Prinzip)
 
   const criticalDeadlines = visibleTasks
     .filter(t => { const d = getDueDate(t); return d && t.status !== 'Erledigt' && new Date(d) <= new Date(Date.now() + 14 * 86400000); })
@@ -189,7 +198,25 @@ export default function Heute() {
         </div>
       </div>
 
-      {/* Day Mode */}
+      {/* NEU: Unternehmensstatus (Mock) */}
+      <div className="mb-4 flex items-center gap-2">
+        <span className="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span className="text-sm text-muted-foreground">Unternehmen stabil</span>
+      </div>
+
+      {/* NEU: Work Mode Selector (kompakter Pill) */}
+      <div className="mb-4">
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
+          {WORK_MODES.map(mode => (
+            <button key={mode} onClick={() => updateWorkMode(mode)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
+                workMode === mode ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:bg-secondary'
+              }`}>{mode}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Day Mode (LEGACY — später einklappbar) */}
       <div className="mb-4">
         <div className="text-xs text-muted-foreground font-medium mb-2">Tagesmodus</div>
         <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
@@ -239,7 +266,7 @@ export default function Heute() {
 
       {/* Prioritized Tasks */}
       <section className="mb-6">
-        <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><ListChecks size={16} /> Priorisierte Aufgaben</h2>
+        <h2 className="text-sm font-semibold flex items-center gap-2 mb-3"><ListChecks size={16} /> Heute — Die drei wichtigsten</h2>
         {loading ? (
           <div className="space-y-2">{[...Array(3)].map((_,i) => <div key={i} className="h-20 bg-card rounded-2xl animate-pulse" />)}</div>
         ) : activeTasks.length === 0 ? (
