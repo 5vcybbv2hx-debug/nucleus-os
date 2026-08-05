@@ -30,6 +30,7 @@ export default function Heute() {
   const [completeTask, setCompleteTask] = useState(null);
   const [barInsights, setBarInsights] = useState([]);
   const [barMode, setBarMode] = useState('read_only');
+  const [sandraInsights, setSandraInsights] = useState([]);
 
   const loadTasks = useCallback(async () => {
     setLoading(true);
@@ -63,7 +64,17 @@ export default function Heute() {
     } catch { setBarInsights([]); setBarMode('stale'); }
   }, []);
 
-  useEffect(() => { loadTasks(); loadBarData(); }, [loadTasks, loadBarData]);
+  // Sandra-Insights laden
+  const loadSandraData = useCallback(async () => {
+    try {
+      const insights = await base44.entities.ExternalInsight.filter({
+        organization: 'SANDRA', status: 'active'
+      });
+      setSandraInsights(insights || []);
+    } catch { setSandraInsights([]); }
+  }, []);
+
+  useEffect(() => { loadTasks(); loadBarData(); loadSandraData(); }, [loadTasks, loadBarData, loadSandraData]);
 
   const hour = new Date().getHours();
   const greet = GREETINGS.find(g => g.h.includes(hour)) || GREETINGS[0];
@@ -95,6 +106,19 @@ export default function Heute() {
     else if (barMode === 'disabled') parts.push('Bar-Integration ist deaktiviert.');
     if (decisions.length > 0) parts.push(`${decisions.length} ${decisions.length === 1 ? 'Aufgabe wartet' : 'Aufgaben warten'} auf deine Freigabe.`);
     if (blocked.length > 0) parts.push(`${blocked.length} ${blocked.length === 1 ? 'Eintrag ist' : 'Einträge sind'} blockiert.`);
+    // Sandra-Status im Lagebild
+    const sandraOverdue = sandraInsights.find(i => i.external_reference === 'sandra_overdue_tasks');
+    const sandraActive = sandraInsights.find(i => i.external_reference === 'sandra_active_projects');
+    if (sandraOverdue && sandraActive) {
+      const activeCount = (sandraActive.summary || '').match(/(\d+)/);
+      const overdueCount = (sandraOverdue.summary || '').match(/(\d+)/);
+      if (activeCount && overdueCount) {
+        parts.push(`Sandra: ${activeCount[0]} aktive Projekte, ${overdueCount[0]} überfällige Aufgaben.`);
+      } else if (activeCount) {
+        parts.push(`Sandra: ${activeCount[0]} aktive Projekte.`);
+      }
+    }
+
     if (activeTasks.length === 0 && decisions.length === 0 && blocked.length === 0) {
       parts.push('Alles ruhig. Genieß den Tag.');
     } else if (decisions.length === 0 && blocked.length === 0 && activeTasks.length > 0) {
@@ -131,7 +155,28 @@ export default function Heute() {
   const statusCards = [
     { label: 'Bar', icon: Beer, state: barMode === 'read_only' ? 'stabil' : barMode === 'stale' ? 'veraltet' : barMode === 'disabled' ? 'inaktiv' : '—', color: barMode === 'read_only' ? 'emerald' : barMode === 'stale' ? 'amber' : 'red', link: null, detail: barInsights.length > 0 ? `${barInsights.length} Insights` : null },
     { label: 'Finanzen', icon: Wallet, state: 'stabil', color: 'emerald', link: '/unternehmen' },
-    { label: 'Sandra', icon: Briefcase, state: 'aktiv', color: 'emerald', link: '/team' },
+    { label: 'Sandra', icon: Briefcase,
+      state: sandraInsights.length > 0
+        ? (() => {
+            const active = sandraInsights.find(i => i.external_reference === 'sandra_active_projects');
+            const overdue = sandraInsights.find(i => i.external_reference === 'sandra_overdue_tasks');
+            const stalled = sandraInsights.find(i => i.external_reference === 'sandra_stalled_projects');
+            if (overdue && overdue.severity === 'warning') return 'Aufmerksam';
+            if (stalled && stalled.severity === 'warning') return 'inaktiv';
+            return 'aktiv';
+          })()
+        : '—',
+      color: (() => {
+        const overdue = sandraInsights.find(i => i.external_reference === 'sandra_overdue_tasks');
+        if (overdue && overdue.severity === 'warning') return 'amber';
+        return 'emerald';
+      })(),
+      link: '/team',
+      detail: (() => {
+        const active = sandraInsights.find(i => i.external_reference === 'sandra_active_projects');
+        return active ? active.title.replace('Sandra: ', '') : null;
+      })()
+    },
     { label: 'Atlas', icon: Compass, state: activeTasks.length > 0 ? `${activeTasks.length} offen` : 'ruhig', color: activeTasks.length > 5 ? 'amber' : 'emerald', link: '/arbeit' },
   ];
 
@@ -249,6 +294,34 @@ export default function Heute() {
           })}
         </div>
       </div>
+
+
+      {/* Sandra-Details (einklappbar) */}
+      {sandraInsights.length > 0 && (
+        <div className="mb-4">
+          <details className="group">
+            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground transition-colors select-none flex items-center gap-1">
+              <Briefcase size={13} /> Sandra Büro ({sandraInsights.length})
+            </summary>
+            <div className="mt-2 space-y-1.5">
+              {sandraInsights.slice(0, 6).map((ins, i) => (
+                <div key={ins.external_reference || i} className="p-2.5 bg-card border border-border rounded-lg flex items-start gap-2">
+                  <span className={`inline-block w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
+                    ins.severity === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium truncate">{ins.title}</p>
+                    {ins.summary && <p className="text-[11px] text-muted-foreground line-clamp-1">{ins.summary}</p>}
+                  </div>
+                </div>
+              ))}
+              <Link to="/team" className="inline-flex items-center gap-1 text-xs text-primary hover:underline mt-2">
+                Team-Übersicht <ArrowRight size={12} />
+              </Link>
+            </div>
+          </details>
+        </div>
+      )}
 
       {/* Bar-Details (nur Pierre, einklappbar) */}
       {perms.isPierre && barInsights.length > 0 && (

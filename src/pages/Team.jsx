@@ -5,6 +5,7 @@ import { de } from 'date-fns/locale';
 import { Users, Crown, Settings, Wallet, Briefcase, ArrowRight } from 'lucide-react';
 import { getOrgMeta } from '@/lib/organizations';
 import { usePermissions } from '@/lib/usePermissions';
+import { base44 } from '@/api/base44Client';
 
 const TEAM_MEMBERS = [
   { name: 'Pierre', role: 'Executive', icon: Crown, desc: 'Strategische Übersicht, Entscheidungen' },
@@ -17,6 +18,16 @@ export default function Team() {
   const perms = usePermissions();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sandraInsights, setSandraInsights] = useState([]);
+
+  const loadSandraData = useCallback(async () => {
+    try {
+      const insights = await base44.entities.ExternalInsight.filter({
+        organization: 'SANDRA', status: 'active'
+      });
+      setSandraInsights(insights || []);
+    } catch { setSandraInsights([]); }
+  }, []);
 
   const loadTasks = useCallback(async () => {
     setLoading(true);
@@ -27,7 +38,7 @@ export default function Team() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadTasks(); }, [loadTasks]);
+  useEffect(() => { loadTasks(); loadSandraData(); }, [loadTasks, loadSandraData]);
 
   // Tasks grouped by assignee
   const tasksByAssignee = tasks.reduce((acc, t) => {
@@ -68,8 +79,27 @@ export default function Team() {
                 {activeCount > 0 && (
                   <span className="text-xs font-semibold bg-primary/10 text-primary px-2 py-1 rounded-full">{activeCount}</span>
                 )}
+                {member.name === 'Sandra' && sandraInsights.length > 0 && (() => {
+                  const overdue = sandraInsights.find(i => i.external_reference === 'sandra_overdue_tasks');
+                  if (overdue && overdue.severity === 'warning') return (
+                    <span className="text-[10px] bg-amber-500/15 text-amber-400 px-1.5 py-0.5 rounded-full">überfällig</span>
+                  );
+                  return null;
+                })()}
               </div>
               <p className="text-xs text-muted-foreground mb-3">{member.desc}</p>
+              {member.name === 'Sandra' && sandraInsights.length > 0 && (
+                <div className="space-y-1 mb-2">
+                  {sandraInsights.slice(0, 4).map((ins, i) => (
+                    <div key={ins.external_reference || i} className="flex items-center gap-2 text-xs">
+                      <span className={`inline-block w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                        ins.severity === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'
+                      }`} />
+                      <span className="flex-1 truncate text-foreground">{ins.title.replace('Sandra: ', '')}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               {activeCount > 0 && (
                 <div className="space-y-1">
                   {memberTasks

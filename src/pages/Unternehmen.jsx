@@ -7,6 +7,16 @@ export default function Unternehmen() {
   const perms = usePermissions();
   const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sandraInsights, setSandraInsights] = useState([]);
+
+  const loadSandra = useCallback(async () => {
+    try {
+      const insights = await base44.entities.ExternalInsight.filter({
+        organization: 'SANDRA', status: 'active'
+      });
+      setSandraInsights(insights || []);
+    } catch { setSandraInsights([]); }
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -17,7 +27,7 @@ export default function Unternehmen() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); loadSandra(); }, [load, loadSandra]);
 
   // Vertretung: keine vertraulichen Finanzinhalte
   if (perms.role === 'vertretung') {
@@ -95,6 +105,26 @@ export default function Unternehmen() {
           Detaillierte Finanzübersicht <ArrowRight size={14} />
         </a>
       </div>
+
+      {/* Sandra Büro — Management-Übersicht */}
+      {sandraInsights.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-sm font-semibold mb-3">Sandra Büro</h2>
+          <div className="space-y-1.5">
+            {sandraInsights.map((ins, i) => (
+              <div key={ins.external_reference || i} className="p-3 bg-card border border-border rounded-xl flex items-start gap-2">
+                <span className={`inline-block w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${
+                  ins.severity === 'warning' ? 'bg-amber-500' : 'bg-emerald-500'
+                }`} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium">{ins.title.replace('Sandra: ', '')}</p>
+                  {ins.summary && <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{ins.summary}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Bar Financial Brief */}
       {barInsights.length > 0 && (
