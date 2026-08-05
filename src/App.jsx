@@ -7,6 +7,20 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
 // Pages
+import Heute from '@/pages/Heute';
+import Kompass from '@/pages/Kompass';
+import CheckIn from '@/pages/CheckIn';
+import Eingang from '@/pages/Eingang';
+import Plan from '@/pages/Plan';
+import Mehr from '@/pages/Mehr';
+import Aufgaben from '@/pages/Aufgaben';
+import Administration from '@/pages/Administration';
+import EventEngine from '@/pages/EventEngine';
+import Cases from '@/pages/Cases';
+import CaseDetail from '@/pages/CaseDetail';
+import CaseEngine from '@/pages/CaseEngine';
+
+// Legacy Pages
 import Dashboard from '@/pages/Dashboard';
 import Documents from '@/pages/Documents';
 import DocumentDetail from '@/pages/DocumentDetail';
@@ -16,16 +30,6 @@ import Settings from '@/pages/Settings';
 import Vehicles from '@/pages/Vehicles';
 import CashBook from '@/pages/CashBook';
 import Assistant from '@/pages/Assistant';
-import Heute from '@/pages/Heute';
-import Eingang from '@/pages/Eingang';
-import Mehr from '@/pages/Mehr';
-import Plan from '@/pages/Plan';
-import Aufgaben from '@/pages/Aufgaben';
-import Administration from '@/pages/Administration';
-import EventEngine from '@/pages/EventEngine';
-import Cases from '@/pages/Cases';
-import CaseDetail from '@/pages/CaseDetail';
-import CaseEngine from '@/pages/CaseEngine';
 
 // Layout
 import AppLayout from '@/components/layout/AppLayout';
@@ -56,22 +60,32 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route element={<AppLayout />}>
+        {/* Executive Workspace */}
         <Route path="/" element={<Heute />} />
+        <Route path="/kompass" element={<Kompass />} />
+        <Route path="/check-in" element={<CheckIn />} />
+
+        {/* Core Modules */}
         <Route path="/eingang" element={<Eingang />} />
         <Route path="/plan" element={<Plan />} />
         <Route path="/aufgaben" element={<Aufgaben />} />
         <Route path="/mehr" element={<Mehr />} />
-        <Route path="/administration" element={<Administration />} />
+
+        {/* Cases & Events */}
+        <Route path="/cases" element={<Cases />} />
+        <Route path="/cases/:id" element={<CaseDetail />} />
+        <Route path="/case-engine" element={<CaseEngine />} />
         <Route path="/event-engine" element={<EventEngine />} />
-      <Route path="/cases" element={<Cases />} />
-      <Route path="/cases/:id" element={<CaseDetail />} />
-      <Route path="/case-engine" element={<CaseEngine />} />
+
+        {/* Administration */}
+        <Route path="/administration" element={<Administration />} />
+
+        {/* Legacy / noch zu prüfen */}
         <Route path="/dokumente" element={<Documents />} />
         <Route path="/dokumente/:id" element={<DocumentDetail />} />
         <Route path="/finanzen" element={<Finance />} />
         <Route path="/finanzen/neu" element={<Finance />} />
         <Route path="/fristen" element={<Deadlines />} />
-        <Route path="/fristen/neu" element={<Deadlines />} />
         <Route path="/einstellungen" element={<Settings />} />
         <Route path="/fahrzeuge" element={<Vehicles />} />
         <Route path="/kassenbuch" element={<CashBook />} />

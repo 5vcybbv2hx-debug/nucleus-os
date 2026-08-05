@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, CheckSquare, Lightbulb, FileText, Calendar, Receipt, Brain } from 'lucide-react';
+import { Plus, X, CheckSquare, Lightbulb, Scale, FolderKanban, Bell, Edit3, Mic } from 'lucide-react';
 
 const ACTIONS = [
-  { key: 'task', label: 'Aufgabe erstellen', icon: CheckSquare, accent: 'text-sky-400' },
-  { key: 'idea', label: 'Idee erfassen', icon: Lightbulb, accent: 'text-amber-400' },
-  { key: 'document', label: 'Dokument hinzufügen', icon: FileText, accent: 'text-violet-400', placeholder: true },
-  { key: 'appointment', label: 'Termin erstellen', icon: Calendar, accent: 'text-emerald-400', placeholder: true },
-  { key: 'expense', label: 'Ausgabe erfassen', icon: Receipt, accent: 'text-red-400', placeholder: true },
-  { key: 'reflection', label: 'Erkenntnis / Notiz', icon: Brain, accent: 'text-rose-400' },
+  { key: 'task', label: 'Aufgabe', icon: CheckSquare, accent: 'text-sky-400' },
+  { key: 'idea', label: 'Idee', icon: Lightbulb, accent: 'text-amber-400' },
+  { key: 'decision', label: 'Entscheidung', icon: Scale, accent: 'text-violet-400', placeholder: true },
+  { key: 'case', label: 'Vorgang', icon: FolderKanban, accent: 'text-emerald-400', placeholder: true },
+  { key: 'event', label: 'Event', icon: Bell, accent: 'text-rose-400', placeholder: true },
+  { key: 'reflection', label: 'Notiz', icon: Edit3, accent: 'text-orange-400' },
 ];
 
 export default function PlusMenu({ onAction }) {
