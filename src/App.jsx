@@ -25,6 +25,7 @@ import Unternehmen from '@/pages/Unternehmen';
 import Administration from '@/pages/Administration';
 import EventEngine from '@/pages/EventEngine';
 import Cases from '@/pages/Cases';
+import Woche from '@/pages/Woche';
 import CaseDetail from '@/pages/CaseDetail';
 import CaseEngine from '@/pages/CaseEngine';
 
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Heute />} />
         <Route path="/eingang" element={<Eingang />} />
         <Route path="/arbeit" element={<Arbeit />} />
+        <Route path="/woche" element={<Woche />} />
         <Route path="/team" element={<Team />} />
         <Route path="/unternehmen" element={<Unternehmen />} />
         <Route path="/mehr" element={<Mehr />} />

@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { Sun, Inbox, Layers, Users, Building2, LayoutGrid, FolderKanban, Shield } from 'lucide-react';
+import { Sun, Inbox, Layers, Users, Building2, LayoutGrid, FolderKanban, Shield, CalendarDays } from 'lucide-react';
 
 const NAV = [
   { to: '/', label: 'Heute', icon: Sun, end: true },
   { to: '/eingang', label: 'Eingang', icon: Inbox },
   { to: '/arbeit', label: 'Arbeit', icon: Layers },
+  { to: '/woche', label: 'Woche', icon: CalendarDays },
   { to: '/team', label: 'Team', icon: Users },
   { to: '/unternehmen', label: 'Unternehmen', icon: Building2 },
   { to: '/mehr', label: 'Mehr', icon: LayoutGrid },
