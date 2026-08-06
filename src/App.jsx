@@ -22,10 +22,10 @@ import Mehr from '@/pages/Mehr';
 import Arbeit from '@/pages/Arbeit';
 import Team from '@/pages/Team';
 import Unternehmen from '@/pages/Unternehmen';
+import Woche from '@/pages/Woche';
 import Administration from '@/pages/Administration';
 import EventEngine from '@/pages/EventEngine';
 import Cases from '@/pages/Cases';
-import Woche from '@/pages/Woche';
 import CaseDetail from '@/pages/CaseDetail';
 import CaseEngine from '@/pages/CaseEngine';
 
