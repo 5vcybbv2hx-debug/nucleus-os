@@ -5,7 +5,6 @@ import { de } from 'date-fns/locale';
 import { Users, Crown, Settings, Wallet, Briefcase, ArrowRight } from 'lucide-react';
 import { getOrgMeta } from '@/lib/organizations';
 import { usePermissions } from '@/lib/usePermissions';
-import { base44 } from '@/api/base44Client';
 
 const TEAM_MEMBERS = [
   { name: 'Pierre', role: 'Executive', icon: Crown, desc: 'Strategische Übersicht, Entscheidungen' },
