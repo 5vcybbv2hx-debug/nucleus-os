@@ -8,6 +8,14 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
  *   "Notfallzugriff"        → nur administrator
  *   "Team" / "Beteiligte"   → alle
  * Rolle wird aus UserProfile.default_role bestimmt (NICHT user.role, NICHT E-Mail).
+ *
+ * WICHTIG: Nutzt asServiceRole für den Task/UserProfile-Read, weil diese Funktion
+ * selbst die komplette Sichtbarkeits-Filterung übernimmt (siehe unten). Mit dem
+ * user-scoped Client (base44.entities.Task.list()) greift zusätzlich RLS auf
+ * Entity-Ebene, was dazu führt, dass Nicht-Ersteller 0 Tasks sehen — auch wenn sie
+ * laut visibility-Feld eigentlich Zugriff haben sollten (z.B. "Team"). Die
+ * Sichtbarkeitslogik hier ist die einzige Zugriffskontrolle, die wir brauchen;
+ * asServiceRole umgeht die zusätzliche (hier unerwünschte) RLS-Einschränkung.
  */
 export default async function(req) {
   try {
@@ -18,14 +26,14 @@ export default async function(req) {
     const body = await req.json().catch(() => ({}));
     const { action } = body;
 
-    // Rolle aus UserProfile bestimmen
-    const profiles = await base44.entities.UserProfile.list().catch(() => []);
+    // Rolle aus UserProfile bestimmen (asServiceRole, da UserProfile evtl. auch RLS hat)
+    const profiles = await base44.asServiceRole.entities.UserProfile.list().catch(() => []);
     const mine = profiles.find(p => p.user === user.id);
     const role = mine?.default_role || 'buero';
     const isPierre = role === 'administrator';
 
     if (action === 'list') {
-      const all = await base44.entities.Task.list();
+      const all = await base44.asServiceRole.entities.Task.list();
       const visible = all.filter(t => {
         const v = t.visibility || 'Team';
         if (v === 'Nur Pierre') return isPierre;
